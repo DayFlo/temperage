@@ -11,23 +11,29 @@ References: `../references/manifest-schema.md`, `../references/rules.md`,
 
 ## 1. Locate the manifest
 
-- Webflow: `data_agent_instructions_tool > search_instructions` under
-  `<prefix>/runs/` for the slug, then `read_instruction`. The manifest JSON is
-  in the record's fenced block. A **403 `forbidden`** means the store is not
-  readable for this account's Webflow site role (`../references/unsupported.md`,
-  access and entitlement table); it is not an error to report as a failure.
-  Skip to the local copy and, at the end, state that the run record could not
-  be updated in Webflow.
-- Locally (Claude Code, Codex): the file the run wrote, if the user has it, or a
-  download the user re-attaches on Claude.ai. When the store is unavailable, the
-  local file is the only record; ask for it by name (`<yyyy-mm-dd>-<slug>`
-  manifest and its brief). On Claude Code a live run writes them to
-  `references/runs/<yyyy-mm-dd>-<slug>.manifest.json` and `.brief.json`, so look
-  there first. The manifest under `assets/examples/` is the worked example
-  (every step `skipped`, `created` empty); it is not a live run, never offer to
-  resume or clean it up, and the tests depend on it staying as it is.
+In the order `../references/stores.md` section 6 gives for records:
 
-If both exist and differ, the one with more steps wins; say so.
+- **Working folder** (Cowork, Claude Code, Codex): a live run writes
+  `sites/<shortName>/runs/<yyyy-mm-dd>-<slug>.manifest.json` and `.brief.json`
+  there first (`references/runs/` in a legacy git checkout), so look there
+  first.
+- **Source of truth**: `read` on `runs/<yyyy-mm-dd>-<slug>.manifest.json`
+  through the adapter (a Confluence or Notion page titled with that path, or
+  the working folder when it is the source of truth). A connector error is
+  classified and reported, not retried in a loop.
+- **A download** the user re-attaches on claude.ai: ask for it by name
+  (`<yyyy-mm-dd>-<slug>` manifest and its brief).
+
+Never Agent Instructions: records are not kept there. A run record found
+under the instruction prefix was written by a version of this skill before
+1.1.0; read it, then move it into the source of truth through the maintain
+flow's Housekeeping rather than updating it in place. The manifest under
+`assets/examples/` is the worked example (every step `skipped`, `created`
+empty); it is not a live run, never offer to resume or clean it up, and the
+tests depend on it staying as it is.
+
+If two copies exist and differ, the one with more steps wins; say so, and write
+the winner back to both.
 
 ## 2. Summarize and offer the choice
 
@@ -38,8 +44,9 @@ Then ask one question: **resume** or **clean up**?
 
 ## 3. Resume
 
-1. Reload the brief from the run record (the same instruction holds it) and
-   confirm with the user that the approved outline still stands. If the design
+1. Reload the brief from the run record (the `.brief.json` beside the
+   manifest) and confirm with the user that the approved outline still stands.
+   If the design
    or the answers changed, this is a new run, not a resume.
 2. Reconcile the created resources against the live site: `get_page_metadata`
    for `created.pageId`, `get_all_components` for `created.componentIds`. A
@@ -80,9 +87,9 @@ the run. The order limits collateral damage:
      the Designer if unused; the MCP delete tools for these are not used by this
      skill (`delete_variable` is on the never list).
 3. Append each deletion to the manifest, then set `status: cleaned`
-   (`manifest.py set manifest.json --status cleaned`) and update the run record
-   in Webflow (`update_instruction`; skipped with a note when the store returned
-   403, in which case hand the updated file back to the user).
+   (`manifest.py set manifest.json --status cleaned`) in the working folder
+   and update the copy in the source of truth (or hand the updated file back to
+   the user on claude.ai without a store connector).
 4. Report what was removed, what was kept and why, and the leftover manual
    items.
 

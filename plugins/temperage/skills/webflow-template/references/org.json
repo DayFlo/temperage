@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "sourceOfTruth": "",
+  "location": {
+    "confluenceSpaceKey": "",
+    "confluenceParentPageId": "",
+    "notionParentPageId": "",
+    "workingFolder": ""
+  },
+  "instructionPrefix": "page-templates",
+  "allowedStores": [],
+  "sites": [],
+  "testedMcpVersion": "",
+  "configuredBy": "",
+  "configuredOn": ""
+}

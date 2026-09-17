@@ -67,6 +67,7 @@ class SkillTreeTests(unittest.TestCase):
         missing = [raw for raw, path in refs if not os.path.exists(path) and not is_local_cache(raw)]
         self.assertEqual(missing, [], f"SKILL.md points at paths that do not exist: {missing}")
         for required in ("flows/build.md", "flows/onboard.md", "flows/maintain.md", "flows/sync.md", "flows/resume.md",
+                         "flows/doctor.md", "references/stores.md", "references/org.json",
                          "references/rules.md", "references/catalog/README.md", "references/runs/README.md",
                          "references/webflow-conventions.md", "references/examples/",
                          "scripts/validate_brief.py", "agents/openai.yaml", "CHANGELOG.md"):
@@ -267,10 +268,10 @@ class SkillTreeTests(unittest.TestCase):
         self.assertIn("delete_instruction", onboard.split("## 10.", 1)[1])
 
     def test_onboard_and_sync_agree_on_the_store_layout(self):
-        """Both flows describe one path layout; a new path has to be added to both."""
+        """Both flows describe one mirror layout, guidance only; a new path has to
+        be added to both, and no flow writes a record under the prefix."""
         store_paths = ("rules/<prefix>.md", "<prefix>/SKILL.md", "<prefix>/conventions.md",
-                       "<prefix>/catalog/<family>.md", "<prefix>/candidates/<slug>.md",
-                       "<prefix>/runs/<date>-<slug>.md")
+                       "<prefix>/catalog/<family>.md")
         onboard, sync = read("flows", "onboard.md"), read("flows", "sync.md")
         for path in store_paths:
             self.assertIn(f"`{path}`", sync, f"sync.md must list {path}")
@@ -280,10 +281,72 @@ class SkillTreeTests(unittest.TestCase):
             "<prefix>/exposure-check.md",     # the throwaway the one-time check writes and deletes
             "<prefix>-catalog-bundle.json",   # a download filename, not a store path
         }
-        # a folder form such as `<prefix>/runs/` stands for the paths under it
+        # a folder form such as `<prefix>/catalog/` stands for the paths under it
         unexpected = {p for p in found - allowed
                       if not (p.endswith("/") and any(s.startswith(p) for s in store_paths))}
         self.assertEqual(unexpected, set(), "onboard.md writes a path sync.md does not know about")
+
+        # records never go to Agent Instructions: the only mentions of the old
+        # record paths are the legacy clean-up in maintain.md Housekeeping and
+        # the note in sync.md that says sync leaves them alone
+        for name in ("onboard.md", "build.md", "resume.md", "doctor.md"):
+            text = read("flows", name)
+            for old in ("`<prefix>/runs/", "`<prefix>/candidates/"):
+                self.assertNotIn(old, text, f"{name} still writes or reads a record under the prefix")
+
+    def test_stores_spec_and_org_config(self):
+        """references/stores.md is the one store specification; org.json ships
+        empty; the doctor flow probes each capability once; build writes records
+        locally first and never as an instruction."""
+        import json
+        stores = read("references", "stores.md")
+        for heading in ("## 1. Data kinds", "## 2. One layout on every store", "## 3. Adapters",
+                        "## 4. Organization configuration: `org.json`", "## 5. The Webflow pointer block",
+                        "## 6. Discovery order and precedence", "## 7. Failure handling and concurrency"):
+            self.assertIn(heading, stores, heading)
+        for adapter in ("**Confluence**", "**Notion**", "**Working folder**", "**Downloads**", "**Webflow mirror**"):
+            self.assertIn(adapter, stores, adapter)
+        self.assertIn("Confluence and Notion are peers", stores)
+        self.assertIn("```webflow-template", stores)
+        self.assertIn("never a home for a record", stores)
+
+        with open(os.path.join(SKILL_DIR, "references", "org.json"), "r", encoding="utf-8") as fh:
+            org = json.load(fh)
+        self.assertEqual(org["schema"], 1)
+        self.assertEqual(org["instructionPrefix"], "page-templates")
+        for key, value in org.items():
+            if key in ("schema", "instructionPrefix"):
+                continue
+            if isinstance(value, dict):
+                self.assertTrue(all(v == "" for v in value.values()), f"org.json {key} must ship empty")
+            else:
+                self.assertIn(value, ("", []), f"org.json {key} must ship empty")
+
+        doctor = read("flows", "doctor.md")
+        for probe in ("list_sites", "search_instructions", "query_pages_schema_markup", "list_branches",
+                      "get_current_page", "get_all_breakpoints"):
+            self.assertIn(f"{probe}`", doctor, probe)
+        self.assertIn("Once each, never a loop", doctor)
+        self.assertIn("Read-only", doctor)
+
+        build = read("flows", "build.md")
+        phase5 = build.split("## Phase 5", 1)[1].split("## Phase 6", 1)[0]
+        self.assertIn("Write-ahead first", flat(phase5))
+        self.assertIn("Never `create_instruction`", flat(phase5))
+        self.assertIn("`cowork`", phase5, "Cowork is a surface the manifest records")
+
+        skill_md = read("SKILL.md")
+        self.assertIn("| Cowork |", skill_md)
+        self.assertIn("Write records locally first", flat(skill_md))
+
+        plugin_json = os.path.join(os.path.dirname(os.path.dirname(SKILL_DIR)), ".claude-plugin", "plugin.json")
+        if os.path.isfile(plugin_json):          # absent when the skill folder is distributed alone
+            with open(plugin_json, "r", encoding="utf-8") as fh:
+                cfg = json.load(fh).get("userConfig", {})
+            self.assertEqual(sorted(cfg), sorted(("source_of_truth", "confluence_space_key", "confluence_parent_page_id",
+                                                  "notion_parent_page_id", "working_folder", "instruction_prefix",
+                                                  "allowed_stores", "sites", "tested_mcp_version")))
+            self.assertFalse(any(field.get("sensitive") for field in cfg.values()), "the configuration never holds a token")
 
     def test_build_handles_no_store_and_no_catalog_bundle(self):
         build = read("flows", "build.md")
@@ -293,10 +356,10 @@ class SkillTreeTests(unittest.TestCase):
         self.assertIn("stops at Phase 3", flat(phase0), "say what is degraded")
         self.assertIn("`flows/onboard.md`", phase0)
 
-    def test_maintain_covers_promotion_without_a_repository(self):
+    def test_maintain_covers_promotion_in_a_page_store(self):
         maintain = read("flows", "maintain.md")
-        self.assertIn("## Maintaining without a repository", maintain)
-        section = maintain.split("## Maintaining without a repository", 1)[1]
+        self.assertIn("## Maintaining in a page store", maintain)
+        section = maintain.split("## Maintaining in a page store", 1)[1]
         for phrase in ("update_instruction", "delete_instruction", "isDraft: false",
                        "no second reader"):
             self.assertIn(phrase, flat(section), phrase)

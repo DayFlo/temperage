@@ -1,9 +1,59 @@
 {
   "name": "temperage",
-  "description": "Turns a design into an unpublished draft page in a Webflow site, brought to the site's existing template family: onboard, interview, approve a visual outline, build, never publish. Skill: webflow-template (/temperage:webflow-template in Claude Code, selected by name in Claude.ai, $webflow-template in Codex). Ships .mcp.json for the Webflow MCP server.",
-  "version": "1.0.1",
+  "description": "Turns a design into an unpublished draft page in a Webflow site, brought to the site's existing template family: onboard, interview, approve a visual outline, build, never publish. Skill: webflow-template (/temperage:webflow-template in Claude Code and Cowork, selected by name in Claude.ai, $webflow-template in Codex). Ships .mcp.json for the Webflow MCP server. The catalog lives in your team's Confluence or Notion (or a working folder) and is mirrored into Webflow Agent Instructions.",
+  "version": "1.1.0",
   "homepage": "https://github.com/DayFlo/webflow-template-skill",
   "author": {
     "name": "temperage contributors"
+  },
+  "userConfig": {
+    "source_of_truth": {
+      "type": "string",
+      "title": "Source of truth",
+      "description": "Where the template catalog and run records live: one of confluence, notion, working-folder, downloads. Leave empty to be asked once, or to follow the pointer the site carries in its Agent Instructions."
+    },
+    "confluence_space_key": {
+      "type": "string",
+      "title": "Confluence space key",
+      "description": "Only when the source of truth is confluence: the space that holds the webflow-template pages."
+    },
+    "confluence_parent_page_id": {
+      "type": "string",
+      "title": "Confluence parent page id",
+      "description": "Only when the source of truth is confluence: the page under which one page per catalog path is created."
+    },
+    "notion_parent_page_id": {
+      "type": "string",
+      "title": "Notion parent page id",
+      "description": "Only when the source of truth is notion: the page under which one child page per catalog path is created."
+    },
+    "working_folder": {
+      "type": "directory",
+      "title": "Working folder",
+      "description": "Absolute folder for the write-ahead copy of every record (and the source of truth itself when it is working-folder). Never inside the plugin directory. Leave empty to be asked once per machine."
+    },
+    "instruction_prefix": {
+      "type": "string",
+      "title": "Webflow instruction prefix",
+      "description": "The Agent Instructions prefix the toolkit owns on each site.",
+      "default": "page-templates"
+    },
+    "allowed_stores": {
+      "type": "string",
+      "title": "Allowed stores",
+      "description": "Which sources of truth a site's pointer block may select (confluence, notion, working-folder, downloads). Empty means any.",
+      "multiple": true
+    },
+    "sites": {
+      "type": "string",
+      "title": "Webflow site ids",
+      "description": "Sites this configuration applies to. Empty means any site.",
+      "multiple": true
+    },
+    "tested_mcp_version": {
+      "type": "string",
+      "title": "Tested Webflow MCP version",
+      "description": "The version string webflow_guide_tool returned when this configuration was last verified; preflight says so once when the live value differs."
+    }
   }
 }

@@ -19,10 +19,11 @@ run, follow the matching reference by hand and say so in the report.
 Work through the phases in order. Do not write anything to Webflow before
 Phase 5, and do not start Phase 5 before the outline is approved.
 
-**Read the conventions before planning any phase** — the repository's
-`webflow-conventions.md`, or `<prefix>/conventions.md` from the instruction
-store on a surface that has no repository, or the `conventions` field of an
-attached catalog bundle. They are the same content. The facts that
+**Read the conventions before planning any phase** — `conventions.md` from
+the source of truth (`../references/stores.md`; `webflow-conventions.md` in a
+legacy git checkout), or `<prefix>/conventions.md` from the Webflow mirror, or
+the `conventions` field of an attached catalog bundle, in that order. They are
+the same content. The facts that
 shape a build differ from site to site and are measured at onboarding, not
 assumed here: whether the Agent Instruction store is readable; the pacing every
 element, props, settings, and builder call needs, which follows from the site's
@@ -40,46 +41,58 @@ Throughout, `<prefix>` is the instruction prefix from `webflow-conventions.md`,
 ## Phase 0: Preflight (silent unless something is wrong)
 
 1. Call `webflow_guide_tool` once per conversation (skip if already done).
-2. Load the site and the family catalog from Webflow Agent Instructions:
-   `data_agent_instructions_tool > search_instructions` for the `<prefix>`
-   skill and `rules/<prefix>.md`, then `read_instruction` for the SKILL.md
-   index, `<prefix>/conventions.md` (the measured facts, on a surface with no
-   repository copy of `webflow-conventions.md`), and each
-   `catalog/<family>.md`. If the site has none, fall back to the
-   bundled `../references/catalog/` and tell the user: "This site has not been
-   onboarded; I am using the copy bundled with the skill, which may be empty or
-   stale."
+2. Find the source of truth and load the family catalog. Run the discovery
+   order in `../references/stores.md` section 6 (skip what preflight already
+   did): `data_agent_instructions_tool > search_instructions` once, no filter;
+   a `rules/<prefix>.md` hit whose first fenced block is a `webflow-template`
+   pointer names the store; else the administrator configuration
+   (`${user_config.source_of_truth}` or `references/org.json`); else the
+   working folder's cached `org.json`; else ask once. Then read, in this order
+   and stopping at the first that answers:
+   - the **source of truth** through its adapter: `catalog/index.md`,
+     `conventions.md`, each `catalog/<family>.md`;
+   - the **Webflow mirror**: `read_instruction` on `<prefix>/SKILL.md`,
+     `<prefix>/conventions.md`, each `<prefix>/catalog/<family>.md`; say once
+     "reading the Webflow mirror; it may lag the source of truth";
+   - an **attached bundle**: take the families, the filled conventions, and the
+     index from it, say which `generatedAt` it carries, and treat it as
+     possibly stale;
+   - else the bundled `../references/catalog/`, which ships empty, and tell the
+     user: "This site has not been onboarded; I am using the copy bundled with
+     the skill, which may be empty or stale."
+
    If `search_instructions` returns **HTTP 403 `forbidden`** ("you cannot read
    this SiteAgentInstructions"), the connector user's Webflow **site role**
    cannot read Agent Instructions; it is not an OAuth scope
    (`../references/unsupported.md`, access and entitlement table, which has the
-   exact ask). This does not stop the build: use the bundled catalog and
-   `../references/rules.md`, remember for the run that the instruction store is
-   unavailable (Phase 5 step 1 and Phase 7 depend on it), and say once: "The
-   Webflow instruction store is not readable for this account's site role; I am
-   using the catalog bundled with the skill." Any other non-200 is classified
-   by the same table. Catalog entries with `status: proposed` are usable; note
-   it for Phase 3 and Phase 7.
+   exact ask). This does not stop the build: guidance comes from the source of
+   truth or the bundle, `../references/rules.md` still binds, and the mirror is
+   neither read nor written for the run. Say once: "The Webflow instruction
+   mirror is not readable for this account's site role; I am reading the
+   catalog from `<store>`." Any other non-200 is classified by the same table.
+   Catalog entries with `status: proposed` are usable; note it for Phase 3 and
+   Phase 7.
 
-   A catalog entry that comes back as a **draft** is a family onboarding wrote
-   straight into the store (Webflow-store mode) that no maintainer has
+   A mirror entry that comes back as a **draft**, or a source-of-truth entry
+   with `status: proposed`, is a family onboarding wrote that no maintainer has
    confirmed yet: read it exactly as `status: proposed`.
 
    **Third case: no store readable and no catalog bundle attached.** The
-   bundled `../references/catalog/` ships **empty**, so on claude.ai a 403, or
-   a site with no toolkit instructions, can leave the run with no families at
-   all. Do not improvise one. Say: "I cannot read a catalog for this site.
-   Two ways forward: run `flows/onboard.md` against this site, or attach the
-   catalog bundle a previous onboarding produced - the JSON or the HTML file;
-   chat accepts HTML, JSON and plain text but not a zip." If the user attaches
-   a bundle, take the families, the filled conventions, and the index from it,
-   say which date it carries, and treat it as possibly stale (the site may have
-   moved on since). If they have neither, state what is degraded before going
-   any further: the rulebook still applies (it is bundled at
-   `../references/rules.md`), Phases 1 and 2 still work, and the run **stops at
-   Phase 3** because there is no family to build from. Nothing site-specific is
-   known either - pacing, breakpoints, the capability table, folder ids, slug
-   and SEO conventions - so no Webflow write happens in this run at all.
+   bundled `../references/catalog/` ships **empty**, so a submitter with no
+   store connector, a 403 on the mirror, or a site with no toolkit
+   instructions can leave the run with no families at all. Do not improvise
+   one. Say: "I cannot read a catalog for this site. Two ways forward: run
+   `flows/onboard.md` against this site, or attach the catalog bundle a
+   previous onboarding produced - the JSON or the HTML file; chat accepts HTML,
+   JSON and plain text but not a zip." If the user attaches a bundle, take the
+   families, the filled conventions, and the index from it, say which date it
+   carries, and treat it as possibly stale (the site may have moved on since).
+   If they have neither, state what is degraded before going any further: the
+   rulebook still applies (it is bundled at `../references/rules.md`), Phases 1
+   and 2 still work, and the run **stops at Phase 3** because there is no
+   family to build from. Nothing site-specific is known either - pacing,
+   breakpoints, the capability table, folder ids, slug and SEO conventions - so
+   no Webflow write happens in this run at all.
 3. **Master pages only**, and only if the flow needs them for scoring: one
    batched `data_pages_tool > get_page_metadata` covering the master page of
    each family you are about to offer (slug and parent folder must match the
@@ -91,13 +104,15 @@ Throughout, `<prefix>` is the instruction prefix from `webflow-conventions.md`,
    family is blocked and why, and point the maintainer at `flows/maintain.md`
    (Refresh inventory, then fix the entry). Other families remain usable.
 4. Check for an open run manifest with the same slug (once the slug is known,
-   re-check): `search_instructions` under `<prefix>/runs/`. If one is `open`,
-   offer `flows/resume.md` (resume or clean up) instead of starting a duplicate
-   build. When the instruction store is unavailable (403), look in
-   `../references/runs/` for `<yyyy-mm-dd>-<slug>.manifest.json` with
-   `status: open` (Claude Code, Codex; live runs write there) and otherwise ask
-   the user whether a manifest file for this slug exists locally or as a
-   download from an earlier conversation.
+   re-check). Look in the **working folder** first
+   (`sites/<shortName>/runs/<yyyy-mm-dd>-<slug>.manifest.json`;
+   `../references/runs/` in a legacy git checkout), then in the source of
+   truth's `runs/` through the adapter, and otherwise ask the user whether a
+   manifest file for this slug exists as a download from an earlier
+   conversation. Never in Agent Instructions: records are not kept there
+   (`../references/stores.md` section 1). If one is `open`, offer
+   `flows/resume.md` (resume or clean up) instead of starting a duplicate
+   build.
 5. Probe Designer availability once: `designer_tool > get_current_page`. A
    success means the Bridge App is running and snapshots, folder creation, and
    canvas navigation are available. On success also call `get_all_breakpoints`
@@ -247,7 +262,7 @@ there is no family to build from, and point the maintainer at
      a site where onboarding found all names unique it is an alarm.
 
    Keep the resolved name-to-id map for the run and write it into the manifest
-   when Phase 5 opens it; nothing in the repository stores a component id, so a
+   when Phase 5 opens it; nothing in the catalog stores a component id, so a
    component that is deleted and recreated only has to keep its name. A resumed
    run re-resolves rather than trusting a stale map: the lookup is cheap.
 
@@ -308,17 +323,21 @@ next step** (`python3 scripts/manifest.py append ...` or the manual procedure in
 `webflow-conventions.md` says for this site (rule 10).
 
 1. **Open the run manifest.** `manifest.py create` with site, family and
-   version, model, isolation mode, surface, and the brief hash. Write it to
-   Webflow as `<prefix>/runs/<yyyy-mm-dd>-<slug>.md` with `isDraft: true`
-   (`data_agent_instructions_tool > create_instruction`), the body starting with
-   "This is a run record, not guidance." Offer the same content as a download.
-   If `create_instruction` returns **403** (or the store was already unavailable
-   in Phase 0), do not abort: keep the manifest and the brief as local files
-   next to each other (Claude Code, Codex: the working directory) or, on
-   Claude.ai, hand both to the user as downloads at the end of every phase, skip
-   the `update_instruction` calls the later steps would make, and record in the
-   manifest and the report that the Webflow instruction store was not writable
-   and the run record lives locally.
+   version, model, isolation mode, surface (`claude-ai`, `claude-code`,
+   `cowork`, or `codex`), and the brief hash. **Write-ahead first**
+   (`../references/stores.md` section 7): on Cowork, Claude Code, and Codex
+   write the manifest and the brief to the working folder as
+   `sites/<shortName>/runs/<yyyy-mm-dd>-<slug>.manifest.json` and
+   `.brief.json` (`../references/runs/` in a legacy git checkout) before
+   anything else; on claude.ai hand both to the user as downloads at the end
+   of every phase. Then write the same files to the source of truth through
+   its adapter, and append every later step there too. **Never**
+   `create_instruction`: a run record is not guidance, and Agent Instructions
+   never hold one. If the source of truth write fails (a connector 4xx or 5xx,
+   a timeout), do not abort: record the step as `failed` in the manifest,
+   retry once at the end of the next phase, and say in the report where the
+   record lives meanwhile. The local layer never fails on the network, so the
+   manifest survives a 429, a 403, or a closed tab.
 2. **Pre-snapshot.** Read the names and definitions of every style, component,
    and variable the run may touch (the family's components with variants and
    props, the classes the catalog rows name, the variables in the
@@ -471,7 +490,9 @@ next step** (`python3 scripts/manifest.py append ...` or the manual procedure in
    Webflow breakpoint media queries the conventions file records. Create styles
    (`data_style_tool`) before the elements that use them; new class names follow
    the site's naming system with the family prefix (`webflow-conventions.md`).
-   Write a candidate record to `<prefix>/candidates/<slug>.md` (`isDraft: true`).
+   Write a candidate record (`../references/catalog/candidates/README.md`
+   format) to the working folder and the source of truth as
+   `sites/<shortName>/candidates/<slug>.md`, never to Agent Instructions.
 9. **Page-level metadata.** JSON-LD via `data_pages_tool >
    bulk_update_pages_schema_markup` from the family's schema template with the
    brief's values, **if** `webflow-conventions.md` records the page schema write
@@ -483,9 +504,10 @@ next step** (`python3 scripts/manifest.py append ...` or the manual procedure in
    JSON-LD payload to the publisher (Page settings > Custom code) until the
    role permission is granted. No page scripts. Custom embeds only if the approved outline
    listed them; otherwise a manual handoff note. Write the candidate record for
-   any Adapted or New section to `<prefix>/candidates/<slug>.md`
-   (`isDraft: true`); when the store is unavailable, write it locally next to
-   the manifest and hand it to the maintainer with the report.
+   any Adapted or New section to `candidates/<slug>.md` in the working folder
+   and the source of truth (step 8); when the source of truth is not reachable
+   for this account, it stays next to the manifest and goes to the maintainer
+   with the report.
 10. **Never**, in this phase or any other: `publish_site`; `publish_branch`
     (except staging, on explicit request, in branch mode);
     `unregister_component`; `delete_variable`; `remove_element` on anything not
@@ -636,20 +658,26 @@ Return, in this order:
    prediction about the next publish, this one has already happened.
 8. Ships-at-next-publish list, in plain words: "these will go live for the whole
    site when someone next publishes, even though the page stays a draft."
-9. Candidate additions written to Webflow (`<prefix>/candidates/`), with the
-   note that a maintainer promotes them through `flows/maintain.md`. If the
-   family used has `status: proposed`, say so here: the family, its master, and
-   its component names were proposed by onboarding and have not been confirmed
-   by a maintainer.
-10. The brief and the manifest as downloads (and their instruction paths). If the
-   instruction store was unavailable (403), say: "The Webflow instruction store
-   was not readable or writable for this account; the run record and the brief
-   exist only as these files. Keep them; resume and cleanup need them."
+9. Candidate additions written to the source of truth (`candidates/<slug>.md`,
+   with the store and page or path named), with the note that a maintainer
+   promotes them through `flows/maintain.md`. If the family used has
+   `status: proposed`, say so here: the family, its master, and its component
+   names were proposed by onboarding and have not been confirmed by a
+   maintainer.
+10. Where every record went: the brief, the manifest, the outline, the
+   snapshots, and the guard verdict, each with its store (working folder path,
+   Confluence or Notion page, or download), and the mirror status (guidance
+   read from the source of truth, the mirror, or a bundle; the mirror
+   unreadable for this role, if so). On claude.ai the brief and the manifest
+   are also handed over as downloads. When the source of truth was not
+   reachable for this account, say: "The run record and the brief exist only
+   as these files. Keep them; resume and cleanup need them, and a maintainer
+   can file them into `<store>`."
 11. Publishing instructions for the human publisher, named according to
     `webflow-conventions.md`, "Publish policy". They finish the manual work
     list, review in the Designer, turn off the draft flag when ready, and
     publish (or merge the branch) themselves. The skill has not published and
     will not; the page is not published until the manual list is done.
 
-Close the manifest (`status: verified` or `failed`) and update the instruction
-copy in Webflow before ending the conversation.
+Close the manifest (`status: verified` or `failed`) in the working folder and
+update the copy in the source of truth before ending the conversation.

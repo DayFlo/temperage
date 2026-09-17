@@ -15,8 +15,12 @@ Measured by a read-only onboarding pass on 2026-01-04 and confirmed on
 
 | Setting | Value | Notes |
 | --- | --- | --- |
-| Instruction prefix | `page-templates` | Default kept; nothing else on the site owns it. Paths: `rules/page-templates.md`, `page-templates/SKILL.md`, `page-templates/conventions.md`, `page-templates/catalog/<family>.md`, `page-templates/candidates/<slug>.md`, `page-templates/runs/<date>-<slug>.md`. |
-| Store | repository | The maintainer has repo write access, so git is the reviewed source and `flows/sync.md` pushes to Webflow. |
+| Instruction prefix | `page-templates` | Default kept; nothing else on the site owns it. Mirror paths: `rules/page-templates.md` (pointer block first), `page-templates/SKILL.md`, `page-templates/conventions.md`, `page-templates/catalog/<family>.md`. |
+| Toolkit-owned paths | the four above and nothing else; guidance only | No record is written to Agent Instructions. |
+| Source of truth | working-folder | The maintainer's git checkout of the skill, legacy layout under `references/`; a pull request reviews every change and `flows/sync.md` pushes to the mirror. |
+| Store location | `<the maintainer's checkout>` | An absolute path on the maintainer's machine; not recorded here because the file is shared. |
+| Webflow mirror | writable on 2026-01-04 | Connector user's site role is Site manager; every push returned 200. |
+| Tested MCP version | `1.0` on 2026-01-04 | The value `webflow_guide_tool` returned during onboarding (fictional). |
 
 ## Sites
 

@@ -4,6 +4,96 @@ All notable changes to the `webflow-template` skill. The format follows
 Keep a Changelog; versions follow semver and are mirrored in `SKILL.md`
 frontmatter (`metadata.version`).
 
+## [1.1.0] - 2026-09-16
+
+### Changed
+
+- **Storage model.** Guidance (the rulebook, the catalog entries, the index,
+  the conventions) and records (briefs, run manifests, snapshots, guard
+  verdicts, candidates, sync state) now have different homes. Guidance lives
+  in a **source of truth** and is **mirrored** into Webflow Agent Instructions
+  under `<prefix>` whenever the connector user's site role allows. Records
+  live in the source of truth only and are **never** written to Agent
+  Instructions; the build flow no longer calls `create_instruction` for a run
+  record or a candidate. `references/stores.md` is the specification.
+- The source of truth is one of **Confluence** or **Notion** (peers, connector
+  neutrality: detected from the connected connectors, asked once only when
+  both are present), a **working folder** (Cowork, Claude Code, Codex; a git
+  checkout is the only path with a pull request), or **downloads only**
+  (claude.ai with no document connector). "Repository" and "Webflow" are no
+  longer store choices: a git checkout is a working folder, and Webflow is the
+  mirror in every configuration. A pre-1.1.0 catalog under the skill's
+  `references/` keeps working as the legacy layout.
+- The **working folder is the write-ahead layer**: the manifest and the brief
+  are written there (or handed over as downloads at the end of every phase on
+  claude.ai) before any network store, so a run record survives a 429, a 403,
+  or a closed tab.
+- `flows/onboard.md` step 0 runs the discovery order (Webflow pointer,
+  administrator configuration, cached `org.json`, ask once) before asking
+  anything; step 8 writes the source of truth first, then the four guidance
+  paths of the mirror, and nothing else; step 9 can emit the organization zip;
+  step 11 reports store by store.
+- `flows/sync.md` pushes source of truth to mirror and pulls guidance edits
+  made in the Webflow Instructions panel back; candidates and run records are
+  no longer pulled because they are no longer written there. The toolkit-owned
+  paths are the four guidance paths. `rules/<prefix>.md` now opens with the
+  pointer block.
+- `flows/build.md` Phase 0 reads guidance from the source of truth, else the
+  mirror (warning that it may lag), else an attached bundle; looks for an open
+  manifest in the working folder and the source of truth; Phase 5 writes
+  records locally first; Phase 7 names the store each artifact went to and the
+  mirror status.
+- `flows/resume.md` locates the manifest in the working folder, then the
+  source of truth, then asks for the download. `flows/maintain.md`
+  "Maintaining without a repository" is now "Maintaining in a page store", and
+  Housekeeping moves pre-1.1.0 records out of Agent Instructions.
+- `references/webflow-conventions.md` "Toolkit settings" gains Source of
+  truth, Store location, Webflow mirror (writable, read-only, unreadable), and
+  Tested MCP version; the "Agent Instructions" table records the pointer.
+- `references/rules.md` rule 19: the toolkit writes guidance to Agent
+  Instructions and nothing else.
+- Preflight records the version string `webflow_guide_tool` returns and says
+  so once when it differs from the tested version.
+- `manifest.py` accepts `cowork` as a surface.
+
+### Added
+
+- `references/stores.md`: data kinds, the one layout on every store, the
+  adapter interface (`list`, `read`, `write`) with Confluence, Notion, working
+  folder, downloads, and the Webflow mirror, connector neutrality, the size
+  rule, the bundle format (schema 2, now carrying `runs` and `candidates`),
+  `org.json`, the Webflow pointer block, the discovery order, and the failure
+  and concurrency rules. The Notion mapping attaches the verbatim file
+  because a rich text `text.content` is capped at 2000 characters and a block
+  array at 100 elements (verified 2026-09-16 against the Notion API request
+  limits).
+- `references/org.json`: the organization configuration, shipped empty
+  (`checks/repo_check.py` fails if the public plugin carries any
+  organization's values).
+- `flows/doctor.md` ("check access"): one read-only probe per capability and
+  one store read, each classified by the access table, printed as a
+  capability matrix with the exact ask for each refusal.
+- **Cowork** as a surface (`SKILL.md` Surfaces table, README install), and the
+  plugin's `userConfig` in `plugin.json` mirroring `org.json` so an
+  administrator can preset the store in managed settings under
+  `pluginConfigs`.
+- README: "Set up for an organization (admin, once)", a Troubleshooting table
+  in user wording, the new store table.
+- Tests: `test_skill_tree.py` asserts the store specification, the empty
+  `org.json`, the doctor probes, the write-ahead rule, that no flow reads or
+  writes a record under the instruction prefix, and that the plugin's
+  `userConfig` mirrors `org.json` with no sensitive field.
+
+### Known limitations
+
+- **Cowork is untested live.** Skill invocation, the plugin MCP OAuth, and
+  Python availability in the Cowork VM are documented from the product
+  documentation, not from a run; every script has a written fallback.
+- **The Confluence page body limit is not verified.** The size rule keeps
+  every page-store body under about 200 KB until it is measured.
+- **No `scripts/org_config.py`.** The organization zip is produced by the
+  written procedure in `flows/onboard.md` step 9.
+
 ## [1.0.1] - 2026-09-16
 
 ### Fixed

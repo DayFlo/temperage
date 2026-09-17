@@ -23,7 +23,7 @@ import json
 import sys
 from typing import Any
 
-SURFACES = ("claude-ai", "claude-code", "codex")
+SURFACES = ("claude-ai", "claude-code", "cowork", "codex")
 TEMPLATE_MODELS = ("duplicate-master", "component-recipe", "hybrid")
 ISOLATION_MODES = ("draft-main", "branch")
 STATUSES = ("open", "verified", "failed", "cleaned")
