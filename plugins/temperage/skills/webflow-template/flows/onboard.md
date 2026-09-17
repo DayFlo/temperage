@@ -11,7 +11,8 @@ What differs is **where the output is stored**, and that is step 0.
 
 Output, whichever store is used: one catalog entry per template family, a
 filled `webflow-conventions.md`, a catalog index, the rulebook installed as a
-Webflow Agent Instruction wherever the scopes allow it, and the sha256 of each
+Webflow Agent Instruction wherever the connector user's site role allows it,
+and the sha256 of each
 thing written. The repository store also keeps a cached site inventory;
 elsewhere the capture is not kept at all (step 3). And, always, the same
 content as **downloadable files** (step 9).
@@ -59,16 +60,21 @@ search_instructions` **once**, with no filter.
 
 - **200** — the store is readable. Keep the result for step 2 and continue with
   the store the user chose.
-- **HTTP 403 `forbidden`** ("you cannot read this SiteAgentInstructions") — the
-  connector user's token lacks the **`agent_instructions:read`** and
-  **`agent_instructions:write`** scopes on this site. Say exactly that, name
-  both scopes, and name who can fix it: a Webflow workspace admin grants them
-  to the connector user, or a maintainer who already has them runs step 8.
-  Then **fall back to the downloads-only store** and carry on: everything steps
-  1 to 7 measure is still worth having, and the user can re-attach the bundle
-  to every future build. **Never retry a 403 in a loop.** One probe, one
-  answer, one store decision that holds for the rest of the conversation.
-- Any other error: stop and report it. Do not retry blindly.
+- **HTTP 403 `forbidden`** ("you cannot read this SiteAgentInstructions") — a
+  Webflow **site role** gate, classified by the access and entitlement table in
+  `../references/unsupported.md`: the connector user's role cannot read Agent
+  Instructions (Reviewer, or an Enterprise custom role; Marketers and Content
+  editors can read but not write; Designers and Site managers can do both). It
+  is not an OAuth scope, and no admin can fix it by granting one. Say exactly
+  that, quote the error, and repeat the row's exact ask: a Webflow workspace
+  admin assigns the built-in Designer or Site manager role (Site settings >
+  Site access), or a maintainer who already has one runs step 8. Then **fall
+  back to the downloads-only store** and carry on: everything steps 1 to 7
+  measure is still worth having, and the user can re-attach the bundle to every
+  future build. **Never retry a 403 in a loop.** One probe, one answer, one
+  store decision that holds for the rest of the conversation.
+- Any other error: classify it by the same table, stop and report it. Do not
+  retry blindly.
 
 ### Size ceiling: 256 KB per instruction
 
@@ -110,6 +116,12 @@ the damage, and the report says so:
   another team already owns that path on the site) and write it into the
   "Toolkit settings" table. Everything else in the toolkit reads the prefix
   from there.
+- Ask the user their **Webflow site role** on this site (Site settings > Site
+  access shows it: Site manager, Designer, Marketer, Content editor, Reviewer,
+  or a custom role by name) and record it in the conventions file's "Agent
+  Instructions" table. The MCP server has no whoami, and the remedy for every
+  refused call depends on the role (`../references/unsupported.md`, access and
+  entitlement table).
 - Say which store step 0 chose, and what that means for the end of the flow: a
   pull request (repository), a set of confirmed writes into Webflow (Webflow),
   or a set of files to keep (downloads only).
@@ -231,10 +243,12 @@ not measure stays UNMEASURED; no later flow may treat it as known.
   `get_all_breakpoints` (ids, names, min and max widths, which is base)** in
   the conventions file. Do not assume a breakpoint set: sites differ, and the
   build flow's Phase 6 and the outline's frames read the list from there.
-- **Token scopes.** For each tool family, record read and write separately, and
-  in particular whether `bulk_update_pages_schema_markup` (page schema write)
-  is allowed; a token that can read schema often cannot write it. Name the
-  permissions to ask an admin for.
+- **Access observed.** For each tool family, record read and write separately,
+  and in particular whether `bulk_update_pages_schema_markup` (page schema
+  write) is allowed; a role that can read schema often cannot write it. For
+  every refused call record the HTTP status, the error `code`, and the message
+  verbatim, and the access-table row it matched (`../references/unsupported.md`).
+  The row carries the exact ask; do not invent a permission name to ask for.
 
 Separately, list inconsistent patterns for human review: duplicate classes,
 one-off components, orphan variables, pages that fit no family. **Do not
@@ -367,10 +381,11 @@ as instructions. Build runs write their own records to `<prefix>/runs/` and
 not guidance, they say so in their first line, and no flow treats them as
 instructions.
 
-If any write returns **HTTP 403 `forbidden`**, the scopes are missing (step 0
-names them). Stop writing, list the paths that were written so a later run
-compares rather than creates, fall back to the downloads store for the rest,
-and do not retry.
+If any write returns **HTTP 403 `forbidden`**, the connector user's site role
+can read Agent Instructions but not manage them (Marketer or Content editor;
+the access table in `../references/unsupported.md` has the exact ask). Stop
+writing, list the paths that were written so a later run compares rather than
+creates, fall back to the downloads store for the rest, and do not retry.
 
 ### Store: repository
 
@@ -387,13 +402,15 @@ pre-existing library and the toolkit never rewrites their metadata
 by build runs are stamped, and only by the sync flow after promotion.
 
 If `search_instructions` or `create_instruction` returns **HTTP 403
-`forbidden`**, the install is **blocked** until a workspace admin grants the
-scopes or a maintainer who has them runs this step. Record the 403 in
-`webflow-conventions.md` (Agent Instructions section) and in the report's
+`forbidden`**, the install is **blocked** until a workspace admin assigns the
+connector user a built-in Designer or Site manager role, or a maintainer who
+has one runs this step (`../references/unsupported.md`, access and entitlement
+table). Record the 403 with its `code` and message in `webflow-conventions.md`
+(Agent Instructions and Access observed sections) and in the report's
 "Decisions needed", finish the rest of the flow (catalog, conventions,
 inventory, sync state stay local; `sync-state.json` keeps `siteId` and
 `lastSync` null), and say that build runs will use the bundled catalog until the
-scopes exist. A 403 here does not stop builds; it only stops the install.
+role changes. A 403 here does not stop builds; it only stops the install.
 
 ### Store: downloads only
 
@@ -429,10 +446,10 @@ Do this **the first time the Webflow store is used on a site**, and record the
 result in the conventions file's "Agent Instructions" section. Skip it on later
 runs; it is a property of the site, not of the run.
 
-What is already known: Agent Instructions are gated behind the
-`agent_instructions:read` scope, are delivered to authorized MCP clients as
-site metadata, have no publish path of their own, and never appear in page
-content. That is strong evidence they are not public. It is **not** a vendor
+What is already known: Agent Instructions are gated by Webflow site role
+(Reviewer and custom roles cannot even read them), are delivered to authorized
+MCP clients as site metadata, have no publish path of their own, and never
+appear in page content. That is strong evidence they are not public. It is **not** a vendor
 statement — none was found — so verify it once rather than asserting it:
 
 1. `create_instruction` a throwaway instruction at `<prefix>/exposure-check.md`
@@ -468,6 +485,8 @@ Then, by store:
   what was given up: "there was no pull request; each write was confirmed in
   this conversation, the proposed families are drafts until a maintainer
   confirms them, and the bundle you have is the only history."
-- **Downloads only**: the bundle, the two scopes to ask an admin for
-  (`agent_instructions:read`, `agent_instructions:write`), and the fact that
-  every build will need the bundle attached until they exist.
+- **Downloads only**: the bundle, the access-table row the probe matched with
+  its exact ask (for the site-role row: a built-in Designer or Site manager
+  role from a Webflow workspace admin, with the admin request template in the
+  README), and the fact that every build will need the bundle attached until
+  the role changes.

@@ -27,8 +27,8 @@ shape a build differ from site to site and are measured at onboarding, not
 assumed here: whether the Agent Instruction store is readable; the pacing every
 element, props, settings, and builder call needs, which follows from the site's
 CMS collection and asset counts; whether loose-section content and slot children
-are reachable at all or are manual handoff items; whether the connector token
-can write page schema; whether branching is available; the breakpoint list; and
+are reachable at all or are manual handoff items; whether the connector user's
+role can write page schema; whether branching is available; the breakpoint list; and
 whether the Designer is reachable. Where that file says UNMEASURED, treat the
 answer as unknown and say so in the report rather than guessing. If the site has
 not been onboarded, there is no catalog and the build stops at Phase 3; point
@@ -50,13 +50,16 @@ Throughout, `<prefix>` is the instruction prefix from `webflow-conventions.md`,
    onboarded; I am using the copy bundled with the skill, which may be empty or
    stale."
    If `search_instructions` returns **HTTP 403 `forbidden`** ("you cannot read
-   this SiteAgentInstructions"), the OAuth user lacks
-   `agent_instructions:read`. This does not stop the build: use the bundled
-   catalog and `../references/rules.md`, remember for the run that the
-   instruction store is unavailable (Phase 5 step 1 and Phase 7 depend on it),
-   and say once: "The Webflow instruction store is not readable for this
-   account; I am using the catalog bundled with the skill." Catalog entries
-   with `status: proposed` are usable; note it for Phase 3 and Phase 7.
+   this SiteAgentInstructions"), the connector user's Webflow **site role**
+   cannot read Agent Instructions; it is not an OAuth scope
+   (`../references/unsupported.md`, access and entitlement table, which has the
+   exact ask). This does not stop the build: use the bundled catalog and
+   `../references/rules.md`, remember for the run that the instruction store is
+   unavailable (Phase 5 step 1 and Phase 7 depend on it), and say once: "The
+   Webflow instruction store is not readable for this account's site role; I am
+   using the catalog bundled with the skill." Any other non-200 is classified
+   by the same table. Catalog entries with `status: proposed` are usable; note
+   it for Phase 3 and Phase 7.
 
    A catalog entry that comes back as a **draft** is a family onboarding wrote
    straight into the store (Webflow-store mode) that no maintainer has
@@ -472,12 +475,13 @@ next step** (`python3 scripts/manifest.py append ...` or the manual procedure in
 9. **Page-level metadata.** JSON-LD via `data_pages_tool >
    bulk_update_pages_schema_markup` from the family's schema template with the
    brief's values, **if** `webflow-conventions.md` records the page schema write
-   as allowed for the connector token. Where it is refused (**403
-   `insufficient_permissions`**; the token can read schema but not write it),
+   as allowed for the connector user's role. Where it is refused (**403
+   `insufficient_permissions`**: the role can read schema but not edit page
+   settings; `../references/unsupported.md`, access and entitlement table),
    record the step as `failed`, do not put `FAQPage` into an FAQ component's
    `Schema` prop unless the visible question blocks match it, and hand the
    JSON-LD payload to the publisher (Page settings > Custom code) until the
-   scope is granted. No page scripts. Custom embeds only if the approved outline
+   role permission is granted. No page scripts. Custom embeds only if the approved outline
    listed them; otherwise a manual handoff note. Write the candidate record for
    any Adapted or New section to `<prefix>/candidates/<slug>.md`
    (`isDraft: true`); when the store is unavailable, write it locally next to

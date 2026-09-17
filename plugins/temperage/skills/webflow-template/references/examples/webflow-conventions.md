@@ -160,15 +160,24 @@ is not recorded here (rule 15).
 | Question | Answer | Measured |
 | --- | --- | --- |
 | `search_instructions` result | 200, no hits | 2026-01-04 |
+| Access-table row the probe matched (`unsupported.md`) | none (200) | 2026-01-04 |
+| Connector user's Webflow site role (asked, not measured) | Site manager | 2026-01-04 |
 | Paths another team already owns | none | 2026-01-04 |
 | Toolkit paths already present | none | 2026-01-04 |
 | Exposure check (`flows/onboard.md` step 10) | marker not found in public output after a publish on 2026-01-06 | 2026-01-06 |
 
-## Token scopes observed
+## Access observed
 
 Pages read and write, elements, components, props, styles, variables, assets,
 Designer tools, Agent Instructions read and write, page schema read and write:
-all allowed for the connector user on 2026-01-05.
+all allowed for the connector user (site role Site manager) on 2026-01-05. No
+call was refused, so no access-table row applied.
+
+| Call | Result | Error `code` and message (verbatim) | Access-table row | Measured |
+| --- | --- | --- | --- | --- |
+| `data_agent_instructions_tool > search_instructions` | 200 | none | none | 2026-01-04 |
+| `data_pages_tool > bulk_update_pages_schema_markup` | 200 | none | none | 2026-01-05 |
+| `data_pages_tool > list_branches` | 403 | `not_enterprise_plan_site` | site plan | 2026-01-04 |
 
 ## Rate limits and response sizes
 

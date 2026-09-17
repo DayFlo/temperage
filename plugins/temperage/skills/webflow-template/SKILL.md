@@ -15,7 +15,7 @@ description: >-
   general design or Webflow conversation.
 license: MIT. See LICENSE
 metadata:
-  version: "1.0.0"
+  version: "1.0.1"
 disable-model-invocation: true
 ---
 
@@ -55,9 +55,10 @@ assume them. A filled example for a fictional site is in
 **Onboarding does not need a repository.** Its step 0 picks a store: Webflow
 Agent Instructions (the default on claude.ai and for anyone without repo write
 access), a git repository (maintainers, and the only path with a pull request
-in it), or downloads only (the fallback when the instruction scopes are
-missing). The measuring is identical in all three; only the destination
-changes, and every one of them also hands the user a download bundle.
+in it), or downloads only (the fallback when the connector user's Webflow site
+role cannot read Agent Instructions). The measuring is identical in all three;
+only the destination changes, and every one of them also hands the user a
+download bundle.
 
 **What the Webflow store gives up, and say it rather than gloss it:** there is
 no pull request, so there is no second reader, no diff, and no revert. What
@@ -90,13 +91,16 @@ three per turn, and explain Webflow terms the first time you use them.
    `page-templates`. If the site has none, fall back to the bundled copies in
    `references/rules.md` and `references/catalog/` and tell the user the site
    has not been onboarded, so the catalog is empty. If the call returns
-   **HTTP 403** (the connector user lacks the `agent_instructions:read` and
-   `agent_instructions:write` scopes), use the same bundled copies, keep the
-   brief and run manifest as local files or downloads, and say in the report
-   that the Webflow instruction store was not readable or writable. A 403 never
-   aborts a run, and is never retried in a loop: one probe, one answer. When the
-   store is unreadable **and** the bundled catalog is empty, ask for the
-   download bundle onboarding produced, or send the user to `flows/onboard.md`;
+   anything but 200, classify it by the **access and entitlement table** in
+   `references/unsupported.md` and repeat that row's exact ask: a 403
+   `forbidden` on instructions is a Webflow **site-role** gate (Reviewer and
+   custom roles cannot read Agent Instructions), not a missing OAuth scope.
+   Then use the same bundled copies, keep the brief and run manifest as local
+   files or downloads, and say in the report that the Webflow instruction store
+   was not readable or writable for this account's role. A 403 never aborts a
+   run, and is never retried in a loop: one probe, one answer. When the store
+   is unreadable **and** the bundled catalog is empty, ask for the download
+   bundle onboarding produced, or send the user to `flows/onboard.md`;
    `flows/build.md` Phase 0 step 2 has the wording and says what is degraded.
 3. Follow `references/rules.md`. It is short. Every rule in it is binding on
    this skill and on any other agent connected to the site.
@@ -105,7 +109,7 @@ three per turn, and explain Webflow terms the first time you use them.
    every element, props, settings, and builder call needs, which follows from
    the site's CMS collection and asset counts (rule 10); whether loose-section
    content and slot children are reachable at all or are manual handoff items;
-   whether the connector token can write page schema; whether branching is
+   whether the connector user's role can write page schema; whether branching is
    available; the breakpoint list; whether component names are unique. None of
    these is a constant: a small site may hit no limits at all, a large one may
    hit several. Where the file says UNMEASURED, say so instead of guessing, and
@@ -158,7 +162,7 @@ writes it makes can, and it says so at the moment it makes it. The full rule is
 | **New components, styles, variables** | Not yet - **at the next site publish, yes** | They are site-level, so they ship whenever anyone next publishes the site, even though the page stays a draft. Every run reports them as the ships-at-next-publish list. Branch mode keeps them off main until merge. |
 | **Uploaded assets** | **Yes, immediately** | `asset_tool > upload_image_by_url` puts the file in the site's asset library, and Webflow serves library assets from a public CDN URL from the moment of upload, before any publish and whether or not the page is ever published. The build warns and asks first, prefers an asset already in the library, and reports every upload as an "already public" line. Deleting an asset later does not un-serve a URL someone already has. |
 | **Branch staging publish** | Gated, not open | Only on explicit request in that turn, only in branch mode, only to staging, never production. Measured: an anonymous request to a Webflow branch staging URL redirects to the Webflow login and returns HTTP 403. |
-| **Agent Instructions** (the catalog store) | Evidence says no; no vendor statement | Gated behind `agent_instructions:read`, delivered to authorized MCP clients as site metadata, no publish path, never in page content. Not a guarantee: `flows/onboard.md` step 10 runs a one-time check per site (throwaway instruction, human publishes on their own cadence, confirm the marker appears nowhere public, delete it). |
+| **Agent Instructions** (the catalog store) | Evidence says no; no vendor statement | Gated by Webflow site role (Site manager and Designer manage; Marketer and Content editor read; Reviewer and custom roles cannot read), delivered to authorized MCP clients as site metadata, no publish path, never in page content. Not a guarantee: `flows/onboard.md` step 10 runs a one-time check per site (throwaway instruction, human publishes on their own cadence, confirm the marker appears nowhere public, delete it). |
 | **CMS items** | Never used | Standing non-goal. CMS items have staged and live states with publish and unpublish events; they are publish-shaped by design, so the toolkit never stores a catalog, brief, candidate, or run record in a collection. |
 
 Never `publish_site`, in any flow, on any surface.
@@ -243,8 +247,8 @@ References (read when a flow points at them):
 - `references/outline-spec.md`: how the visual outline is rendered.
 - `references/webflow-conventions.md`: **the template onboarding fills in.**
   Sites, class naming, tokens, families, folders, slugs and SEO, schema, the
-  instruction prefix, branching, breakpoints, Designer availability, token
-  scopes, rate limits, publish policy, reconciliation log.
+  instruction prefix, branching, breakpoints, Designer availability, access
+  observed, rate limits, publish policy, reconciliation log.
 - `references/catalog/README.md`: catalog entry format (including the `loose`
   and `candidate:` conventions and the `proposed` status) and the component
   metadata convention. `references/catalog/` itself ships empty; onboarding
@@ -256,8 +260,9 @@ References (read when a flow points at them):
   and sync flows archive to it.
 - `references/sync-state.json`: last-synced hashes per instruction path; ships
   with `siteId` and `lastSync` null.
-- `references/unsupported.md`: what the MCP cannot do, what depends on a scope
-  or a site limit, and the Designer handoff for each.
+- `references/unsupported.md`: what the MCP cannot do, what depends on a site
+  role, a plan, or a site limit, the Designer handoff for each, and the
+  **access and entitlement table** every flow uses to classify a refused call.
 - `references/examples/`: a filled catalog entry and a filled conventions file
   for a fictional site. Never read by a build; onboarding does not replace it.
 

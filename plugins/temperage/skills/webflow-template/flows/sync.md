@@ -8,8 +8,8 @@ match; between syncs Webflow may hold extra drafts (candidates, run records).
 References: `../references/rules.md`, `../references/catalog/`,
 `../references/catalog/candidates/`, `../references/runs/`,
 `../references/sync-state.json`, `../references/webflow-conventions.md` (the
-instruction prefix), `../references/unsupported.md` (Agent Instructions scope
-row). Tools: `data_agent_instructions_tool > search_instructions`,
+instruction prefix), `../references/unsupported.md` (the access and entitlement
+table). Tools: `data_agent_instructions_tool > search_instructions`,
 `read_instruction`, `create_instruction`, `update_instruction`,
 `move_instruction`, `delete_instruction`.
 
@@ -65,14 +65,16 @@ outcomes:
 - **200 with hits or no hits**: continue.
 - **HTTP 403 `forbidden`** ("you cannot read this SiteAgentInstructions"), on
   this call or on any later `create_instruction` or `update_instruction`:
-  **stop the sync**. Report that the connector user lacks
-  `agent_instructions:read` and `agent_instructions:write` on the site, quote
-  the error, point at the handoff wording in `unsupported.md`, and leave
-  `sync-state.json` exactly as it was (`siteId` and `lastSync` stay `null` if
-  no sync ever happened). Nothing is half-pushed because the probe runs first;
-  if a 403 arrives mid-push after some paths were created, list the paths that
-  were written so the next successful sync knows to compare rather than create.
-- Any other error: stop and report; do not retry blindly.
+  **stop the sync**. Classify it by the access and entitlement table in
+  `unsupported.md` (it is a Webflow **site-role** gate: the connector user's
+  role cannot read or manage Agent Instructions; it is not an OAuth scope),
+  quote the error, repeat the row's exact ask, and leave `sync-state.json`
+  exactly as it was (`siteId` and `lastSync` stay `null` if no sync ever
+  happened). Nothing is half-pushed because the probe runs first; if a 403
+  arrives mid-push after some paths were created, list the paths that were
+  written so the next successful sync knows to compare rather than create.
+- Any other error: classify it by the same table, stop and report; do not
+  retry blindly.
 
 Whatever the outcome, the probe runs **once**. A 403 is an answer, not a
 transient failure; never retry it in a loop.
@@ -194,5 +196,6 @@ the toolkit tag (`| candidate | run <slug>`), or its ID appears in
 Sync ends with an updated `sync-state.json` and a summary table: path,
 direction, result (created, updated, skipped, pulled, conflict), and the hashes
 involved. Conflicts left unresolved are listed first. A sync stopped by a 403
-ends with the scope report instead and no state change. Open a PR with the
+ends with the access-table classification and its exact ask instead, and no
+state change. Open a PR with the
 `sync-state.json` change and any pulled candidates or run records.

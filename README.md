@@ -72,8 +72,8 @@ Do not send the GitHub URL; a private repository will not help.
 2. **Customize → Skills** → **+ Create skill** → **Upload a skill**, or
    have an owner add it under **Organization settings → Skills → + Add**.
 3. Connect the Webflow connector in a chat (**+** → **Connectors** →
-   **Webflow**). The `agent_instructions:read` and
-   `agent_instructions:write` scopes let the catalog live in Webflow.
+   **Webflow**). Your Webflow **site role** decides whether the catalog can
+   live in Webflow Agent Instructions; see Requirements.
 4. Start a chat and select **webflow-template** by name.
 
 Python scripts only run there if code execution is enabled. Every script
@@ -100,7 +100,7 @@ installed into Webflow Agent Instructions. Its first step picks a store:
 | --- | --- | --- | --- |
 | **Webflow** | claude.ai, and anyone without repo write access | Webflow Agent Instructions under the instruction prefix (default `page-templates`) | the person in the conversation, at each write |
 | **Repository** | maintainers on Claude Code or Codex with git | files under `references/`, pushed to Webflow by the sync flow | a pull request |
-| **Downloads only** | the fallback when the `agent_instructions` scopes are missing | files the user keeps and re-attaches to each build | nobody |
+| **Downloads only** | the fallback when your Webflow site role cannot read Agent Instructions | files the user keeps and re-attaches to each build | nobody |
 
 Measuring is identical in all three. Every path also hands over a
 **download bundle** (one JSON file, or one HTML page). A build accepts
@@ -127,7 +127,7 @@ full rule is `references/rules.md` rule 19; the same table is in
 | **New components, styles, variables** | Not yet - **at the next site publish, yes** | Site-level, so they ship whenever anyone next publishes the site, even though the page stays a draft. Every run reports them as the ships-at-next-publish list. Branch mode keeps them off main until merge. |
 | **Uploaded assets** | **Yes, immediately** | This is the one exception. `asset_tool > upload_image_by_url` puts the file in the site's asset library, and Webflow serves library assets from a public CDN URL from the moment of upload, before any publish and whether or not the page is ever published. The build warns and asks before every upload, prefers an asset already in the library, and reports each one as an "already public" line, separate from and more urgent than ships-at-next-publish. Deleting an asset later does not un-serve a URL someone already has. |
 | **Branch staging publish** | Gated, not open | Only on explicit request in that turn, only in branch mode, only to staging, never production. Measured, not assumed: an anonymous request to a Webflow branch staging URL redirects to the Webflow login and returns HTTP 403. |
-| **Agent Instructions** (the catalog store) | Evidence says no; no vendor statement | Gated behind `agent_instructions:read`, delivered to authorized MCP clients as site metadata, no publish path, never in page content. Not a guarantee: onboarding runs a one-time check per site (write a throwaway instruction with a unique marker, have a human publish on their normal cadence, confirm the marker appears nowhere in public output, delete it). |
+| **Agent Instructions** (the catalog store) | Evidence says no; no vendor statement | Gated by Webflow site role (Site manager and Designer manage; Marketer and Content editor read; Reviewer and custom roles cannot read), delivered to authorized MCP clients as site metadata, no publish path, never in page content. Not a guarantee: onboarding runs a one-time check per site (write a throwaway instruction with a unique marker, have a human publish on their normal cadence, confirm the marker appears nowhere in public output, delete it). |
 | **CMS items** | Never used | Standing non-goal. The Data API models CMS items with staged and live states and publish and unpublish events: they are publish-shaped by design, so a catalog entry, brief, candidate, or run record kept in a collection would sit one publish away from the public internet. |
 
 `checks/repo-check.sh` fails if this section disappears from either file,
@@ -159,6 +159,37 @@ other agent connected to the site reads the same rules.
 - Webflow MCP connector (OAuth). Claude Code prompts on first use.
 - Python 3.11 for local scripts (standard library only). Claude.ai uses a
   written fallback when code execution is off.
+
+**Webflow site role.** The Webflow MCP server enforces your site role: an
+agent can do through it exactly what you can do in the Designer. To *read*
+Agent Instructions you need the built-in Marketer, Content editor, Designer,
+or Site manager role; to *write* them (onboarding's install step, sync) you
+need Designer or Site manager. Reviewers and Enterprise custom roles cannot
+read Agent Instructions at all, and that access cannot currently be changed
+for custom roles; on a custom role the separate "Use Webflow AI" permission
+also starts turned off. The symptom is HTTP 403 `forbidden`, "you cannot read
+this SiteAgentInstructions". It is not an OAuth scope problem: a scope error
+has the code `missing_scopes` and names the scope, and no admin can grant
+scopes per user. Everything else in the skill works with any role that can
+edit pages and components; without instruction access the skill reads its
+catalog from an attached bundle and says so. The full classification of every
+refused call is the access and entitlement table in
+`plugins/temperage/skills/webflow-template/references/unsupported.md`.
+
+## Asking your Webflow admin for access
+
+Copy, fill in, send:
+
+> I need read and write access to AI Agent Instructions on the site
+> `<site name>` (site ID `<id>`) for `<email>`. The Webflow MCP server returns
+> HTTP 403 "you cannot read this SiteAgentInstructions" for my account. Per
+> Webflow's Help Center, only the built-in Site manager and Designer roles can
+> read and manage Agent Instructions, and access cannot currently be changed
+> for custom roles. Please either set my Site role to Designer (Site settings >
+> Site access), or, if I am on a custom role, switch me to the built-in
+> Designer role or enable the "Use Webflow AI" permission on my role, and
+> confirm Webflow AI is enabled for the workspace. I will verify by opening the
+> Instructions panel in the Designer and re-running the read.
 
 ## Development
 

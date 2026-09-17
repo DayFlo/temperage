@@ -13,7 +13,7 @@ References: `../references/catalog/README.md` (entry format, status, component
 metadata convention), `../references/catalog/candidates/README.md` (promotion),
 `../references/rules.md`, `../references/site-inventory.md` (the local capture
 from onboarding), `../references/webflow-conventions.md`,
-`../references/unsupported.md` (the Agent Instructions scope row). Scripts:
+`../references/unsupported.md` (the access and entitlement table). Scripts:
 `../scripts/catalog_lint.py`. Follow-up flow: `sync.md` after any catalog
 change. `<prefix>` throughout is the instruction prefix from the conventions
 file (default `page-templates`).
@@ -196,8 +196,8 @@ From an existing page or from a run's outline (the "new family" path in
 ## Refresh inventory
 
 1. Re-run the read-only inventory from `onboard.md` step 3, including the
-   measurements: component-name uniqueness, branching, breakpoints, token
-   scopes, and the rate-limit probes. A site that has grown can cross the
+   measurements: component-name uniqueness, branching, breakpoints, access
+   observed, and the rate-limit probes. A site that has grown can cross the
    request-budget threshold it was previously under; that changes the pacing
    rule and possibly the capability table, so re-measure rather than assume the
    old answers hold.

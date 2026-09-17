@@ -181,12 +181,12 @@ Agreed at onboarding step 5, per family. MEASURE the masters first
 | --- | --- | --- |
 | `<family>` | `<type>` | `<extra types>` |
 
-Also MEASURE whether the connector token can **write** page schema
-(`bulk_update_pages_schema_markup`). Reading and writing are separate
-permissions; a token that reads schema may still return `403
-insufficient_permissions` on the write. Record the answer: when the write is
-refused, build Phase 5 records the step as `failed` and hands the JSON-LD to
-the publisher instead.
+Also MEASURE whether the connector user's role can **write** page schema
+(`bulk_update_pages_schema_markup`). Reading and writing are separate role
+permissions; a role that reads schema may still return `403
+insufficient_permissions` on the write (`unsupported.md`, access and
+entitlement table). Record the answer: when the write is refused, build Phase 5
+records the step as `failed` and hands the JSON-LD to the publisher instead.
 
 ## Isolation default
 
@@ -264,14 +264,16 @@ MEASURE: `data_agent_instructions_tool > search_instructions`.
 
 | Question | Answer | Measured |
 | --- | --- | --- |
-| `search_instructions` result | `<200 / 403 forbidden>` | `<date>` |
+| `search_instructions` result | `<200 / 403 forbidden, with the error code and message verbatim>` | `<date>` |
+| Access-table row the probe matched (`unsupported.md`) | `<none (200) / site role / OAuth token / other>` | `<date>` |
+| Connector user's Webflow site role (asked, not measured: the MCP server has no whoami) | `<Site manager / Designer / Marketer / Content editor / Reviewer / custom: NAME>` | `<date>` |
 | Paths another team already owns | `<list, or none>` | `<date>` |
 | Toolkit paths already present | `<list, or none>` | `<date>` |
 | Exposure check (`flows/onboard.md` step 10) | `<not run / marker not found in public output after a publish on DATE / FOUND - stop using the store>` | `<date>` |
 
 The exposure check runs **once per site**, the first time the store is used. It
 is how the claim "Agent Instructions are not public" is settled here rather
-than assumed: the evidence (scope-gated, delivered to authorized MCP clients as
+than assumed: the evidence (role-gated, delivered to authorized MCP clients as
 site metadata, no publish path, never in page content) is strong, but no vendor
 statement was found, so the answer above is a measurement, not a quote
 (`rules.md` rule 19).
@@ -281,18 +283,27 @@ When the store is the catalog's only home, onboarding also appends a
 with its sha256 and timestamp - because there is no `sync-state.json` to hold
 them.
 
-A **403** means the connector user lacks `agent_instructions:read` and
-`agent_instructions:write` on the site. That is a scope on the OAuth token, not
-a missing tool: the install is blocked until an admin grants them, build runs
-fall back to the bundled copies, and run records live as local files. A 403
-never aborts a build.
+A **403 `forbidden`** means the connector user's Webflow **site role** cannot
+read Agent Instructions (Reviewer, or an Enterprise custom role; Marketers and
+Content editors read but cannot write). It is not a missing tool and not an
+OAuth scope, so no scope grant fixes it. Classify it by the access and
+entitlement table in `unsupported.md`: the install is blocked until a workspace
+admin assigns a built-in Designer or Site manager role, build runs fall back to
+the bundled copies or an attached bundle, and run records live as local files.
+A 403 never aborts a build.
 
-## Token scopes observed
+## Access observed
 
 MEASURE per tool family and record read and write separately: pages, elements,
 components, props, styles, variables, assets, Designer tools, Agent
-Instructions, page schema markup. Name the permissions to ask a workspace admin
-for when something is refused.
+Instructions, page schema markup. For every refused call record the HTTP
+status, the error `code`, and the message verbatim, and the row of the access
+and entitlement table (`unsupported.md`) it matched; the row carries the exact
+ask, so nothing here guesses at a permission name.
+
+| Call | Result | Error `code` and message (verbatim) | Access-table row | Measured |
+| --- | --- | --- | --- | --- |
+| `<tool > action>` | `<200 / 403 / 429>` | `<code: message, or none>` | `<row, or none>` | `<date>` |
 
 ## Rate limits and response sizes
 

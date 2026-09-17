@@ -8,6 +8,18 @@ the version `SKILL.md` mirrors.
 
 The format follows Keep a Changelog; versions follow semver.
 
+## [1.0.1] - 2026-09-16
+
+### Fixed
+
+- The skill's diagnosis of a 403 on Agent Instructions: it is a Webflow
+  site-role gate, not a missing OAuth scope. Details in the skill changelog.
+- README: Requirements explains which built-in site roles can read and write
+  Agent Instructions; new "Asking your Webflow admin for access" template.
+- `checks/repo_check.py`: new check that `references/unsupported.md` carries
+  the access and entitlement table and that the OAuth scope names appear
+  nowhere else in the repository.
+
 ## [1.0.0] - Unreleased
 
 First public release.

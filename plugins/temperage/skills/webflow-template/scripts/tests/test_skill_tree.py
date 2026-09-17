@@ -160,9 +160,45 @@ class SkillTreeTests(unittest.TestCase):
         self.assertIn("## What this can and cannot make public", text)
         section = text.split("## What this can and cannot make public", 1)[1].split("\n## ", 1)[0]
         for phrase in ("draft: true", "next site publish", "from the moment of upload",
-                       "branch staging", "agent_instructions:read", "CMS items"):
+                       "branch staging", "Gated by Webflow site role", "CMS items"):
             self.assertIn(phrase, flat(section), phrase)
         self.assertIn("publish_site", section)
+
+    def test_a_403_on_instructions_is_diagnosed_as_a_site_role_gate(self):
+        """The 403 on search_instructions is a Webflow site-role gate. The skill
+        once blamed two OAuth scopes and told users to ask an admin for them,
+        which is not actionable. The remedy now lives in one place, the access
+        and entitlement table, and the scope names appear only in that table's
+        row describing what a real scope error looks like."""
+        unsupported = read("references", "unsupported.md")
+        self.assertIn("## Access and entitlement table", unsupported)
+        table = unsupported.split("## Access and entitlement table", 1)[1]
+        for phrase in ("you cannot read this SiteAgentInstructions", "site role",
+                       "insufficient_permissions", "missing_scopes",
+                       "not_enterprise_plan_site", "ModeForbidden", "429"):
+            self.assertIn(phrase, flat(table), phrase)
+
+        scope = "agent_instructions:" + "read"    # built at runtime so this file does not trip its own check
+        offenders = []
+        for dirpath, dirnames, filenames in os.walk(SKILL_DIR):
+            dirnames[:] = [d for d in dirnames if d != "__pycache__"]
+            for name in filenames:
+                if not name.endswith((".md", ".py", ".json", ".yaml", ".html")):
+                    continue
+                path = os.path.join(dirpath, name)
+                with open(path, "r", encoding="utf-8", errors="replace") as fh:
+                    for n, line in enumerate(fh, 1):
+                        if scope in line and "missing_scopes" not in line:
+                            offenders.append(f"{os.path.relpath(path, SKILL_DIR)}:{n}")
+        self.assertEqual(offenders, [], "the OAuth scope names belong only in the access table's missing_scopes row")
+
+        for parts, phrase in ((("SKILL.md",), "access and entitlement table"),
+                              (("flows", "onboard.md"), "site role"),
+                              (("flows", "build.md"), "access and entitlement table"),
+                              (("flows", "sync.md"), "access and entitlement table"),
+                              (("references", "webflow-conventions.md"), "## Access observed"),
+                              (("references", "rules.md"), "gated by Webflow site role")):
+            self.assertIn(phrase, flat(read(*parts)), f"{'/'.join(parts)} should say: {phrase}")
 
     def test_rulebook_covers_public_exposure(self):
         rules = read("references", "rules.md")
@@ -220,7 +256,7 @@ class SkillTreeTests(unittest.TestCase):
         onboard = read("flows", "onboard.md")
         self.assertIn("## 0. Choose the store", onboard)
         step0 = onboard.split("## 0. Choose the store", 1)[1].split("\n## ", 1)[0]
-        for phrase in ("agent_instructions:read", "agent_instructions:write",
+        for phrase in ("site role", "access and entitlement table",
                        "Never retry a 403 in a loop", "256 KB",
                        "must never be written to the store",
                        "confirmation before each write"):

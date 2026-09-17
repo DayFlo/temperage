@@ -14,9 +14,10 @@ References: `../references/manifest-schema.md`, `../references/rules.md`,
 - Webflow: `data_agent_instructions_tool > search_instructions` under
   `<prefix>/runs/` for the slug, then `read_instruction`. The manifest JSON is
   in the record's fenced block. A **403 `forbidden`** means the store is not
-  readable for this account; it is not an error to report as a failure. Skip to
-  the local copy and, at the end, state that the run record could not be updated
-  in Webflow.
+  readable for this account's Webflow site role (`../references/unsupported.md`,
+  access and entitlement table); it is not an error to report as a failure.
+  Skip to the local copy and, at the end, state that the run record could not
+  be updated in Webflow.
 - Locally (Claude Code, Codex): the file the run wrote, if the user has it, or a
   download the user re-attaches on Claude.ai. When the store is unavailable, the
   local file is the only record; ask for it by name (`<yyyy-mm-dd>-<slug>`

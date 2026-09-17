@@ -4,6 +4,41 @@ All notable changes to the `webflow-template` skill. The format follows
 Keep a Changelog; versions follow semver and are mirrored in `SKILL.md`
 frontmatter (`metadata.version`).
 
+## [1.0.1] - 2026-09-16
+
+### Fixed
+
+- **Access diagnosis.** A 403 `forbidden` on `search_instructions` ("you cannot
+  read this SiteAgentInstructions") is a Webflow **site-role** gate: Site
+  managers and Designers read and manage Agent Instructions, Marketers and
+  Content editors read them, Reviewers and Enterprise custom roles cannot read
+  them. The skill used to blame two missing OAuth scopes and tell users to ask
+  an admin to grant them, which no admin can do (Webflow's own OAuth app
+  requests the scopes; a real scope error has the code `missing_scopes`). The
+  wrong wording was in nine files and a test asserted it.
+- `references/unsupported.md` gains the **access and entitlement table**: one
+  row per signal (site role, resource permission `insufficient_permissions`,
+  OAuth `missing_scopes`, plan `not_enterprise_plan_site`, `ModeForbidden`,
+  429), each with its cause class, who fixes it, the exact ask, and what the
+  skill does meanwhile. Every flow now points there instead of carrying its
+  own remedy.
+- `SKILL.md` preflight, `flows/onboard.md` (step 0 probe, step 8, step 11),
+  `flows/build.md` (Phase 0 step 2, Phase 5 step 9), `flows/sync.md` step 0,
+  `flows/resume.md`, `flows/maintain.md`, `references/rules.md` rule 19, and
+  `references/webflow-conventions.md` say "site role" where they said "scope".
+- `references/webflow-conventions.md`: "Token scopes observed" is now **Access
+  observed** and records, per refused call, the status, the error `code`, the
+  verbatim message, and the access-table row it matched, instead of a
+  permission name to ask for. The "Agent Instructions" table gains the
+  connector user's site role (asked at onboarding step 1; the MCP server has
+  no whoami) and the probe's classification.
+- The repository README's Requirements section explains the role model, and a
+  new "Asking your Webflow admin for access" section carries a request
+  template.
+- Tests: `test_skill_tree.py` asserts the access table and that the OAuth
+  scope names appear nowhere in the skill except the table's `missing_scopes`
+  row; `checks/repo_check.py` enforces the same across the repository.
+
 ## [1.0.0] - Unreleased
 
 First public release. The skill is site-agnostic: it ships the flows, the

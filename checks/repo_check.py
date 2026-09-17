@@ -9,7 +9,10 @@ Two halves:
 2. The public-exposure guarantee. The "What this can and cannot make public"
    section exists in README.md and SKILL.md, the rulebook still forbids
    publish_site, and the uploaded-asset warning is still in the rulebook and
-   the build flow, so none of it can be quietly deleted later.
+   the build flow, so none of it can be quietly deleted later. The access
+   diagnosis: the access and entitlement table exists and the agent_instructions
+   OAuth scope names appear nowhere else (a 403 on instructions is a site-role
+   gate, and the wrong remedy was once copied into nine files).
 3. Disclosure. Nothing in the tree may carry a Designer Bridge App launch link
    (it embeds a per-account app token; references/rules.md rule 15), any other
    long secret-shaped token, a machine-specific path, a branch staging domain,
@@ -33,7 +36,7 @@ import subprocess
 import sys
 
 EXPECTED_URL = "https://mcp.webflow.com/mcp"
-EXPECTED_VERSION = "1.0.0"
+EXPECTED_VERSION = "1.0.1"
 EXPECTED_SKILL = "webflow-template"
 EXPECTED_PLUGIN = "temperage"
 EXPECTED_MARKET = "webflow-template-skill"
@@ -485,6 +488,44 @@ def check_public_exposure(paths, report):
         "an upload is public before any publish and the skill must keep saying so")
 
 
+ACCESS_HEADING = "Access and entitlement table"
+# The 403 on search_instructions is a Webflow site-role gate. The skill once
+# blamed two OAuth scopes in nine files and a test asserted it. The scope names
+# may now appear in exactly one place: the access table's row that says what a
+# real scope error (code missing_scopes) looks like.
+SCOPE_PHRASE = re.compile(r"agent_instructions:(?:read|write)")
+SCOPE_ROW_MARK = "missing_scopes"
+
+
+def check_access_diagnosis(paths, report):
+    """The access and entitlement table exists in references/unsupported.md and
+    is the only place that names the agent_instructions OAuth scopes."""
+    unsupported, err = read_text(paths["unsupported"])
+    if err:
+        return report.bad(f"references/unsupported.md {err}")
+    report.verdict(
+        f"## {ACCESS_HEADING}" in unsupported,
+        f'references/unsupported.md carries the "{ACCESS_HEADING}" section',
+        f'references/unsupported.md has no "{ACCESS_HEADING}" section; every flow points there for a refused call')
+
+    offenders = []
+    for path in tracked_files(paths["root"]):
+        rel = os.path.relpath(path, paths["root"])
+        if rel in SELF:
+            continue
+        text, err = read_text(path)
+        if err:
+            continue
+        for n, line in enumerate(text.splitlines(), 1):
+            if SCOPE_PHRASE.search(line) and SCOPE_ROW_MARK not in line:
+                offenders.append(f"{rel}:{n}")
+    report.verdict(
+        not offenders,
+        "the agent_instructions OAuth scope names appear only in the access table's missing_scopes row",
+        "the 403 on instructions is a site-role gate, not a scope; scope names found outside the access table: "
+        + " ".join(offenders[:8]))
+
+
 def check_license(paths, report):
     """LICENSE is MIT and carries a copyright line. A filled holder and the
     leftover '<copyright holder>' placeholder both pass; only a missing or
@@ -601,6 +642,7 @@ CHECKS = (
     check_codex_marketplace,
     check_catalog_ships_empty,
     check_public_exposure,
+    check_access_diagnosis,
     check_license,
     check_tree_scan,
     check_live_validate,
@@ -629,6 +671,7 @@ def main(argv):
         "readme": os.path.join(root, "README.md"),
         "rules": os.path.join(skill, "references", "rules.md"),
         "build": os.path.join(skill, "flows", "build.md"),
+        "unsupported": os.path.join(skill, "references", "unsupported.md"),
     }
     report = Report()
     for check in CHECKS:
