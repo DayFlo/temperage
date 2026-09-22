@@ -5,7 +5,7 @@ change on purpose. Six paths; run the one the user asked for.
 
 It is written for a working folder that is a git checkout, where every path
 ends in a pull request. When the source of truth is a **page store**
-(Confluence or Notion; `flows/onboard.md` step 0, `../references/stores.md`)
+(Notion; `flows/onboard.md` step 0, `../references/stores.md`)
 or a plain folder, there is no PR to open: read "Maintaining in a page store"
 at the end of this file first, then run the path you need with the
 substitutions it lists.
@@ -252,16 +252,15 @@ From an existing page or from a run's outline (the "new family" path in
 
 ## Maintaining in a page store
 
-When the source of truth is Confluence, Notion, or a plain folder, every path
-above still applies; only the mechanics change. The review is the page's own
-version history and comments (Confluence versions with diff, Notion page
-history), plus a confirmation before each write.
+When the source of truth is Notion or a plain folder, every path above still
+applies; only the mechanics change. The review is the page's own version
+history and comments (Notion page history), plus a confirmation before each write.
 
 **Substitutions.** Wherever a path says:
 
 | It says | Do this instead |
 | --- | --- |
-| read `../references/catalog/<family>.md` | `read` `catalog/<family>.md` through the adapter (`../references/stores.md` section 3): the code macro body of the Confluence page, or the Notion attachment, titled with that path |
+| read `../references/catalog/<family>.md` | `read` `catalog/<family>.md` through the adapter (`../references/stores.md` section 3): the Notion attachment on the page titled with that path |
 | edit the entry and lint it | edit the body in the conversation; run `catalog_lint.py` on a temporary file if code execution is available, otherwise walk the checklist in `catalog/README.md` by hand and say the linter did not run |
 | open the PR | show the whole new body, ask for an explicit yes, then `write` it to that one path; the page store keeps the previous version, and that version is the diff a second reader can open |
 | after merge, run `sync.md` | run `sync.md` push now: it rewrites the mirror entry (`update_instruction`, `isDraft: false` once promoted) and the index at `<prefix>/SKILL.md`, and records the hashes in `sync-state.json` in the source of truth |

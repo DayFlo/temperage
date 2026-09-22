@@ -7,8 +7,8 @@ layout conventions the site already has. Never publishes.
 This repository is a plugin marketplace. One plugin,
 `temperage`, carries the `webflow-template` skill. Claude Code, Cowork, and
 Codex install from the repo. Claude.ai does not: zip the skill folder and
-upload it. After that, the catalog lives in your team's Confluence or Notion
-(or a working folder), and is mirrored into Webflow Agent Instructions so
+upload it. After that, the catalog lives in your team's Notion (or a working
+folder), and is mirrored into Webflow Agent Instructions so
 every agent on the site reads the same rules.
 
 **Onboard first.** Families name components that exist on one site, so
@@ -51,7 +51,7 @@ the Webflow OAuth flow on first use, and `/mcp` lists it next to your
 claude.ai connectors. Invoke the skill by name. Hooks and sub-agents are
 Cowork-only features; this plugin ships neither, so nothing is greyed out
 elsewhere. Records are written to a working folder you name, then to the
-organization store through your Confluence or Notion connector.
+organization store through your Notion connector.
 
 ### Codex
 
@@ -116,9 +116,8 @@ The skill separates **where the catalog lives** (the source of truth) from
 **the Webflow mirror** every agent on the site reads. An admin configures
 both once; nobody else sees a setup question.
 
-1. **Pick the source of truth.** Confluence or Notion, whichever your team
-   already uses through a Claude connector. Create an empty space or parent
-   page for it (for example `Webflow templates`) and share it with everyone
+1. **Pick the source of truth.** Notion, through the Claude Notion
+   connector. Create an empty parent page for it (for example `Webflow templates`) and share it with everyone
    who will run builds. If your team has neither, the skill falls back to a
    working folder (Cowork, Claude Code) or downloads (claude.ai).
 2. **Run the onboard flow with "configure for organization".** Do this from
@@ -140,9 +139,8 @@ both once; nobody else sees a setup question.
      "pluginConfigs": {
        "temperage": {
          "options": {
-           "source_of_truth": "confluence",
-           "confluence_space_key": "WEBT",
-           "confluence_parent_page_id": "123456",
+           "source_of_truth": "notion",
+           "notion_parent_page_id": "<parent page id>",
            "instruction_prefix": "page-templates"
          }
        }
@@ -156,8 +154,8 @@ both once; nobody else sees a setup question.
    capability and prints what is readable, what is writable, and the exact
    ask for anything refused.
 
-**Per user, afterwards.** Connect the Webflow connector, plus the Confluence
-or Notion connector if that is the store. Nothing else.
+**Per user, afterwards.** Connect the Webflow connector, plus the Notion
+connector if that is the store. Nothing else.
 
 ## Onboarding
 
@@ -168,7 +166,7 @@ pointer, then the organization configuration, then it asks once):
 
 | Store | Holds | Reviewed by | Who can write |
 | --- | --- | --- | --- |
-| **Confluence** or **Notion** (source of truth) | catalog, conventions, index, run records, candidates | page history and comments | anyone with connector access to the space or page |
+| **Notion** (source of truth) | catalog, conventions, index, run records, candidates | page history and comments | anyone with connector access to the parent page |
 | **Working folder** (Cowork, Claude Code) | the same, as files; a git checkout gets a pull request | the folder's own history, or nobody | the user |
 | **Downloads only** (claude.ai without a connector) | the same, as one JSON bundle and one HTML page | nobody | the user keeps the files |
 | **Webflow Agent Instructions** (mirror, always attempted) | rulebook, index, conventions, catalog entries; never records | per-path confirmation | Designer or Site manager site role |

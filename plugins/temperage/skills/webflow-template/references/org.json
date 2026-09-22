@@ -2,8 +2,6 @@
   "schema": 1,
   "sourceOfTruth": "",
   "location": {
-    "confluenceSpaceKey": "",
-    "confluenceParentPageId": "",
     "notionParentPageId": "",
     "workingFolder": ""
   },

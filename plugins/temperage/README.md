@@ -2,8 +2,8 @@
 
 Claude Code and Cowork plugin. One skill: **webflow-template**. Turns a
 design into an unpublished draft page in a Webflow site, built from a reusable
-template family. Never publishes. The catalog lives in your team's Confluence
-or Notion (or a working folder) and is mirrored into Webflow Agent
+template family. Never publishes. The catalog lives in your team's Notion
+(or a working folder) and is mirrored into Webflow Agent
 Instructions.
 
 ## Installation

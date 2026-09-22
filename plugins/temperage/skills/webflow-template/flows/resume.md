@@ -18,8 +18,8 @@ In the order `../references/stores.md` section 6 gives for records:
   there first (`references/runs/` in a legacy git checkout), so look there
   first.
 - **Source of truth**: `read` on `runs/<yyyy-mm-dd>-<slug>.manifest.json`
-  through the adapter (a Confluence or Notion page titled with that path, or
-  the working folder when it is the source of truth). A connector error is
+  through the adapter (a Notion page titled with that path, or the working
+  folder when it is the source of truth). A connector error is
   classified and reported, not retried in a loop.
 - **A download** the user re-attaches on claude.ai: ask for it by name
   (`<yyyy-mm-dd>-<slug>` manifest and its brief).

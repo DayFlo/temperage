@@ -52,13 +52,11 @@ allows, and it never holds a record.
 
 | Source of truth | For | Where the catalog lives | What reviews a change |
 | --- | --- | --- | --- |
-| **Confluence** | a team that already uses Confluence through a Claude connector | one page per path under the configured parent page | page versions and comments |
 | **Notion** | a team that already uses Notion through a Claude connector | one child page per path under the configured parent page, the file attached | page history and comments |
 | **Working folder** | Cowork, Claude Code, Codex | files under `webflow-template/sites/<shortName>/` in a folder the user names, never inside the plugin; a git checkout gets a pull request | the folder's own history: a pull request in a git checkout, Drive or OneDrive versions in a synced folder, nothing in a plain one |
 | **Downloads only** | claude.ai with no document connector | files the user keeps and re-attaches | nobody; the user keeps the files |
 
-Confluence and Notion are peers (connector neutrality): name both, in this
-order, and never call either the default.
+Notion is the only page store; Confluence is not supported.
 
 ### Run the discovery order first
 
@@ -77,10 +75,9 @@ section 6:
    configuration is the organization's constraint (`allowedStores`).
 3. **The working folder's cached `org.json`** from an earlier run on this
    machine.
-4. **Ask once.** Detect which document connectors are present in the
-   conversation's tool list. Two connected: "Confluence and Notion are both
-   connected. Which one is the source of record for the Webflow template
-   catalog?" One connected: confirm it in one sentence. None, on Cowork or
+4. **Ask once.** Detect whether the Notion connector is present in the
+   conversation's tool list. Connected: confirm it as the source of record in
+   one sentence. None, on Cowork or
    Claude Code: ask for a working folder path ("an absolute folder outside the
    plugin; a git checkout if you want a pull request"). None, on claude.ai:
    downloads only, and say what that means. Non-technical submitters are not
@@ -150,8 +147,7 @@ report says so:
   one says the family is unconfirmed. A maintainer promotes it through
   `flows/maintain.md`, "Maintaining in a page store";
 - **the entry carries its own history.** Each entry keeps its `## Decisions`
-  and changelog sections; page versions (Confluence) or page history (Notion)
-  hold the diff, and a plain folder has none;
+  and changelog sections; Notion page history holds the diff, and a plain folder has none;
 - **the download bundle is the portable copy.** Keep every bundle the flow
   hands over; on downloads only it is the only history there is.
 
@@ -174,7 +170,7 @@ report says so:
   entitlement table).
 - Say which source of truth step 0 chose and whether the Webflow mirror will
   be written, and what that means for the end of the flow: pages with a
-  version history (Confluence, Notion), files in a folder with a pull request
+  version history (Notion), files in a folder with a pull request
   only if it is a git checkout (working folder), or a set of files to keep
   (downloads only); plus, when the role allows, a set of confirmed guidance
   writes into Webflow.
@@ -551,7 +547,7 @@ store by store and path by path; and the exposure check result if step 10 ran.
 
 Then, by store:
 
-- **Confluence or Notion**: the parent page and the pages written under it,
+- **Notion**: the parent page and the pages written under it,
   and the sentence about review: "each write was confirmed in this
   conversation; the page history is the diff; the proposed families stay
   proposed until a maintainer confirms them."

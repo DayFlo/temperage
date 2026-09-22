@@ -531,8 +531,8 @@ def check_access_diagnosis(paths, report):
 
 ORG_KEYS = ("schema", "sourceOfTruth", "location", "instructionPrefix", "allowedStores",
             "sites", "testedMcpVersion", "configuredBy", "configuredOn")
-ORG_LOCATION_KEYS = ("confluenceSpaceKey", "confluenceParentPageId", "notionParentPageId", "workingFolder")
-USER_CONFIG_KEYS = ("source_of_truth", "confluence_space_key", "confluence_parent_page_id",
+ORG_LOCATION_KEYS = ("notionParentPageId", "workingFolder")
+USER_CONFIG_KEYS = ("source_of_truth",
                     "notion_parent_page_id", "working_folder", "instruction_prefix",
                     "allowed_stores", "sites", "tested_mcp_version")
 STORE_FILES = ("references/stores.md", "references/org.json", "flows/doctor.md")
@@ -591,7 +591,7 @@ def check_store_config(paths, report):
             problems.append(f"{key} (sensitive: the configuration never holds a token)")
     report.verdict(
         not problems,
-        "plugin.json userConfig mirrors org.json (nine non-sensitive fields with type, title, description)",
+        "plugin.json userConfig mirrors org.json (seven non-sensitive fields with type, title, description)",
         f"plugin.json userConfig problems: {', '.join(problems)}")
 
 

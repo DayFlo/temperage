@@ -16,9 +16,8 @@ frontmatter (`metadata.version`).
   live in the source of truth only and are **never** written to Agent
   Instructions; the build flow no longer calls `create_instruction` for a run
   record or a candidate. `references/stores.md` is the specification.
-- The source of truth is one of **Confluence** or **Notion** (peers, connector
-  neutrality: detected from the connected connectors, asked once only when
-  both are present), a **working folder** (Cowork, Claude Code, Codex; a git
+- The source of truth is one of **Notion** (detected from the connected
+  connectors and confirmed once), a **working folder** (Cowork, Claude Code, Codex; a git
   checkout is the only path with a pull request), or **downloads only**
   (claude.ai with no document connector). "Repository" and "Webflow" are no
   longer store choices: a git checkout is a working folder, and Webflow is the
@@ -59,8 +58,8 @@ frontmatter (`metadata.version`).
 ### Added
 
 - `references/stores.md`: data kinds, the one layout on every store, the
-  adapter interface (`list`, `read`, `write`) with Confluence, Notion, working
-  folder, downloads, and the Webflow mirror, connector neutrality, the size
+  adapter interface (`list`, `read`, `write`) with Notion, working folder,
+  downloads, and the Webflow mirror, the size
   rule, the bundle format (schema 2, now carrying `runs` and `candidates`),
   `org.json`, the Webflow pointer block, the discovery order, and the failure
   and concurrency rules. The Notion mapping attaches the verbatim file
@@ -89,8 +88,8 @@ frontmatter (`metadata.version`).
 - **Cowork is untested live.** Skill invocation, the plugin MCP OAuth, and
   Python availability in the Cowork VM are documented from the product
   documentation, not from a run; every script has a written fallback.
-- **The Confluence page body limit is not verified.** The size rule keeps
-  every page-store body under about 200 KB until it is measured.
+- **Confluence is not supported.** Notion is the only page store; a team on
+  Confluence uses a working folder or downloads.
 - **No `scripts/org_config.py`.** The organization zip is produced by the
   written procedure in `flows/onboard.md` step 9.
 

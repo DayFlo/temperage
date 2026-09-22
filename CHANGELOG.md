@@ -14,7 +14,7 @@ The format follows Keep a Changelog; versions follow semver.
 
 - The `webflow-template` skill's storage model: guidance is mirrored into
   Webflow Agent Instructions, records never are, and the source of truth is
-  Confluence, Notion, a working folder, or downloads. Details in the skill
+  Notion, a working folder, or downloads. Details in the skill
   changelog.
 - `plugin.json` declares `userConfig` (source of truth, location, instruction
   prefix, allowed stores, sites, tested MCP version), all non-sensitive, so an

@@ -64,8 +64,8 @@ assume them. A filled example for a fictional site is in
   Agent Instructions: they are not guidance, they would inflate every agent's
   instruction discovery on the site, and that store has no history.
 
-The source of truth is one of **Confluence** or **Notion** (peers; whichever
-the team already uses through a Claude connector), a **working folder**
+The source of truth is one of **Notion** (through the Claude Notion
+connector), a **working folder**
 (Cowork, Claude Code, Codex: a plain folder, a synced folder, or a git
 checkout, which is the only path with a pull request), or **downloads only**
 (claude.ai with no document connector). An administrator configures it once for
@@ -89,7 +89,7 @@ bundle as a portable copy. The detail is in `flows/onboard.md` step 0 and
 
 | Surface | How it is invoked | Webflow access | Scripts | Persistence (`references/stores.md`) |
 | --- | --- | --- | --- | --- |
-| Claude.ai | User selects "webflow-template" by name | First-party Webflow connector (OAuth per user) | Code execution sandbox, Python only if enabled | **No repo, and none needed.** Source of truth through the Confluence or Notion connector when one is connected, else downloads only (records handed over at the end of every phase); guidance mirrored into Webflow Agent Instructions under `<prefix>` when the role allows; a download bundle always |
+| Claude.ai | User selects "webflow-template" by name | First-party Webflow connector (OAuth per user) | Code execution sandbox, Python only if enabled | **No repo, and none needed.** Source of truth through the Notion connector when it is connected, else downloads only (records handed over at the end of every phase); guidance mirrored into Webflow Agent Instructions under `<prefix>` when the role allows; a download bundle always |
 | Claude Code | `/temperage:webflow-template` (plugin skills are namespaced; the bare form only applies to a copy in `.claude/skills`) | Plugin `.mcp.json` (`https://mcp.webflow.com/mcp`) or the project's MCP | Local `python3` | Working folder as write-ahead, then the organization store; a git checkout as the working folder gives a pull request, the reviewed path |
 | Cowork | Invoke by name in the Cowork tab, or `/temperage:webflow-template` | The plugin's `.mcp.json` server (Cowork runs its own OAuth on first use and lists it in `/mcp` next to the claude.ai connectors), or the claude.ai Webflow connector | `python3` in the Cowork VM when present, else the written fallback | Working folder as write-ahead, then the organization store through the claude.ai connectors. Hooks and sub-agents are Cowork-only features; this skill ships neither |
 | Codex | `$webflow-template` | `[mcp_servers.webflow]` in `~/.codex/config.toml` | Local `python3` | Working folder; the organization store only when an MCP server for it is configured |
@@ -280,8 +280,7 @@ Flows (procedures, read one at a time):
 References (read when a flow points at them):
 
 - `references/stores.md`: **the store specification.** Data kinds, the one
-  layout, the adapters (Confluence, Notion, working folder, downloads, Webflow
-  mirror), `org.json`, the Webflow pointer block, the discovery order, failure
+  layout, the adapters (Notion, working folder, downloads, Webflow mirror), `org.json`, the Webflow pointer block, the discovery order, failure
   and concurrency rules.
 - `references/org.json`: the organization configuration, shipped empty; an
   administrator fills it (or answers the plugin's configuration prompt).

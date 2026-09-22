@@ -2,7 +2,7 @@
 
 Maintainer flow. Keeps the **source of truth** and the **Webflow Agent
 Instructions mirror** aligned, for guidance only. The source of truth
-(`../references/stores.md`: Confluence, Notion, or a working folder) is where
+(`../references/stores.md`: Notion or a working folder) is where
 rules, the index, the conventions, and catalog entries are reviewed; Webflow is
 the mirror every agent on the site reads at runtime. After a sync the two
 match. Records (briefs, manifests, snapshots, candidates, sync state) are not
@@ -37,8 +37,8 @@ site where the source of truth is (`stores.md` section 5):
 
 ````
 ```webflow-template
-sourceOfTruth: confluence
-location: SPACE=<space key> PARENT=<page id>
+sourceOfTruth: notion
+location: NOTION_PARENT=<page id>
 instructionPrefix: page-templates
 updated: <ISO date>
 ```

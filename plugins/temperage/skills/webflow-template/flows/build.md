@@ -666,7 +666,7 @@ Return, in this order:
    maintainer.
 10. Where every record went: the brief, the manifest, the outline, the
    snapshots, and the guard verdict, each with its store (working folder path,
-   Confluence or Notion page, or download), and the mirror status (guidance
+   Notion page, or download), and the mirror status (guidance
    read from the source of truth, the mirror, or a bundle; the mirror
    unreadable for this role, if so). On claude.ai the brief and the manifest
    are also handed over as downloads. When the source of truth was not

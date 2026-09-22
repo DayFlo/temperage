@@ -69,18 +69,17 @@ named.
 
 | Adapter | Location config | Mapping | History | Notes |
 | --- | --- | --- | --- | --- |
-| **Confluence** | space key, parent page id | one page per path, title = the path; body = one paragraph of human summary (for `.md` files the entry's first paragraph; for `.json` what the file is) followed by the verbatim file in a code macro (`markdown` or `json`). `list` = the parent's descendants (or a CQL title-prefix search); `read` = the code macro body of the page with that title; `write` = create the page when absent, else update it, which makes a new version | native page versions with diff | the closest thing to a pull request without git; comments on the page are the review |
 | **Notion** | parent page id | one child page per path, title = the path; the verbatim file **attached** as a file upload (`create file upload`, then attach it to the page); page body = the human summary and the attachment. `read` = download the attachment; `write` = a new upload attached to the same page | page history, retention depends on the plan | the attachment is the truth, not the page body. Verified 2026-09-16 against the Notion API request limits: a rich text `text.content` is capped at 2000 characters and any block array at 100 elements, so a code block would need chunking and reassembly; the attachment is byte-exact. The workspace's `max_file_upload_size_in_bytes` bounds a single write; read it before the first write and apply the size rule below |
 | **Working folder** | an absolute folder path chosen by the user | files exactly as laid out | none by itself; a Drive or OneDrive desktop-synced folder adds versions, and a **git checkout** adds a pull request, the only path that has one | Cowork and Claude Code (Codex too). Never a path inside the plugin directory. Always the write-ahead layer (section 7), whatever the source of truth |
 | **Downloads** | none | one JSON bundle and one self-contained HTML page at the end of every phase (the bundle format is below) | the user keeps the files | claude.ai with no document connector, and any submitter whose account cannot reach the source of truth. Never a zip: chat accepts HTML, JSON, and plain text |
 | **Webflow mirror** | the instruction prefix | guidance paths only, per-path confirmation, `create_instruction` when absent and `update_instruction` when present, the three-way hash rule from `flows/sync.md` | none readable | written only when the connector user's site role allows (`unsupported.md`, access and entitlement table); never a home for a record |
 
-**Connector neutrality.** Confluence and Notion are peers, listed
-alphabetically, never called default, primary, or fallback. The skill gates on
-"a document store (Confluence or Notion)": it detects which connectors are
-present from the tools available in the conversation, asks which is the source
-of record only when both are connected and no configuration already answers,
-and stores the answer (section 4). Google Drive is not an adapter: its
+**Page stores.** Notion is the only page-store adapter. The skill detects the
+Notion connector from the tools available in the conversation and, when no
+configuration already answers, confirms it as the source of record in one
+sentence and stores the answer (section 4). Confluence is not an adapter: it
+was dropped on 2026-09-22 to keep one page-store mapping to maintain and test.
+Google Drive is not an adapter: its
 connector creates files and folders but cannot edit an existing file. Slack
 canvases are not an adapter: no structure, weak history. Webflow CMS is not an
 adapter: CMS items have staged and live states and are publish-shaped by design
@@ -116,8 +115,6 @@ work, and no token is ever in it: the connectors own authentication.
   "schema": 1,
   "sourceOfTruth": "",
   "location": {
-    "confluenceSpaceKey": "",
-    "confluenceParentPageId": "",
     "notionParentPageId": "",
     "workingFolder": ""
   },
@@ -132,10 +129,10 @@ work, and no token is ever in it: the connectors own authentication.
 
 | Key | Values | Meaning |
 | --- | --- | --- |
-| `sourceOfTruth` | `confluence`, `notion`, `working-folder`, `downloads` | The adapter guidance and records are written to and read from first |
-| `location` | the keys the chosen adapter needs; the rest stay empty | Confluence: `confluenceSpaceKey` and `confluenceParentPageId`. Notion: `notionParentPageId`. Working folder: `workingFolder`, an absolute path, or empty to ask once per machine |
+| `sourceOfTruth` | `notion`, `working-folder`, `downloads` | The adapter guidance and records are written to and read from first |
+| `location` | the keys the chosen adapter needs; the rest stay empty | Notion: `notionParentPageId`. Working folder: `workingFolder`, an absolute path, or empty to ask once per machine |
 | `instructionPrefix` | default `page-templates` | The Webflow instruction prefix; the same value `webflow-conventions.md`, "Toolkit settings", records per site |
-| `allowedStores` | a subset of the four values, or empty | What a Webflow pointer (section 5) may select; empty means unconstrained. A pointer naming a store outside this list is shown to the user and not adopted |
+| `allowedStores` | a subset of the three values, or empty | What a Webflow pointer (section 5) may select; empty means unconstrained. A pointer naming a store outside this list is shown to the user and not adopted |
 | `sites` | Webflow site ids, or empty | Sites this configuration applies to; empty means any site |
 | `testedMcpVersion` | the version string `webflow_guide_tool` returned when the configuration was last verified | Preflight compares it with the live value and says so once when they differ |
 | `configuredBy`, `configuredOn` | a name or role, an ISO date | Who to ask, and how old it is |
@@ -148,8 +145,8 @@ work, and no token is ever in it: the connectors own authentication.
    re-upload updates everyone at next use. Onboarding's "configure for
    organization" path emits that zip (`flows/onboard.md` step 9).
 2. **Claude Code and Cowork plugin.** `plugin.json` declares `userConfig`
-   fields with the same meanings (`source_of_truth`, `confluence_space_key`,
-   `confluence_parent_page_id`, `notion_parent_page_id`, `working_folder`,
+   fields with the same meanings (`source_of_truth`,
+   `notion_parent_page_id`, `working_folder`,
    `instruction_prefix`, `allowed_stores`, `sites`, `tested_mcp_version`).
    The user answers once when enabling the plugin, or an administrator presets
    them in managed settings under `pluginConfigs["temperage"].options`, which
@@ -158,7 +155,6 @@ work, and no token is ever in it: the connectors own authentication.
    | Field | Value in this conversation |
    | --- | --- |
    | source of truth | `${user_config.source_of_truth}` |
-   | Confluence space key, parent page id | `${user_config.confluence_space_key}`, `${user_config.confluence_parent_page_id}` |
    | Notion parent page id | `${user_config.notion_parent_page_id}` |
    | working folder | `${user_config.working_folder}` |
    | instruction prefix | `${user_config.instruction_prefix}` |
@@ -180,15 +176,14 @@ connector user's role allows and pushed across sites with Shared Library:
 
 ````
 ```webflow-template
-sourceOfTruth: confluence
-location: SPACE=<space key> PARENT=<page id>
+sourceOfTruth: notion
+location: NOTION_PARENT=<page id>
 instructionPrefix: page-templates
 updated: <ISO date>
 ```
 ````
 
-`location` is one line: `SPACE=… PARENT=…` for Confluence, `NOTION_PARENT=…`
-for Notion, `FOLDER=…` for a working folder, empty for downloads. Anyone whose
+`location` is one line: `NOTION_PARENT=…` for Notion, `FOLDER=…` for a working folder, empty for downloads. Anyone whose
 role can read Agent Instructions gets the store location from the site itself.
 The block carries a location, never a credential, so a Designer who edits it
 can at worst redirect where records land, and `allowedStores` in `org.json`
@@ -249,9 +244,8 @@ Never Agent Instructions.
 - **Limits.** 256 KB per Agent Instruction (unchanged). Notion: 2000
   characters per rich text `text.content`, 100 elements per block array, a
   per-workspace file upload size (verified 2026-09-16); the attachment mapping
-  is why. Confluence: the page body limit is not verified; record it here when
-  it is measured. Until then the size rule in section 3 keeps bodies under
-  about 200 KB on every page store.
+  is why. The size rule in section 3 keeps bodies under about 200 KB on the
+  page store.
 - **Never.** No record in Agent Instructions. No store inside the plugin
   directory. No token in `org.json`, in a pointer, or in a bundle. No CMS
   collection as a store.

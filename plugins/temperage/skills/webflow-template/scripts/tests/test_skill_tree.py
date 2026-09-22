@@ -304,9 +304,9 @@ class SkillTreeTests(unittest.TestCase):
                         "## 4. Organization configuration: `org.json`", "## 5. The Webflow pointer block",
                         "## 6. Discovery order and precedence", "## 7. Failure handling and concurrency"):
             self.assertIn(heading, stores, heading)
-        for adapter in ("**Confluence**", "**Notion**", "**Working folder**", "**Downloads**", "**Webflow mirror**"):
+        for adapter in ("**Notion**", "**Working folder**", "**Downloads**", "**Webflow mirror**"):
             self.assertIn(adapter, stores, adapter)
-        self.assertIn("Confluence and Notion are peers", stores)
+        self.assertNotIn("| **Confluence** |", stores, "Confluence is not an adapter")
         self.assertIn("```webflow-template", stores)
         self.assertIn("never a home for a record", stores)
 
@@ -343,7 +343,7 @@ class SkillTreeTests(unittest.TestCase):
         if os.path.isfile(plugin_json):          # absent when the skill folder is distributed alone
             with open(plugin_json, "r", encoding="utf-8") as fh:
                 cfg = json.load(fh).get("userConfig", {})
-            self.assertEqual(sorted(cfg), sorted(("source_of_truth", "confluence_space_key", "confluence_parent_page_id",
+            self.assertEqual(sorted(cfg), sorted(("source_of_truth",
                                                   "notion_parent_page_id", "working_folder", "instruction_prefix",
                                                   "allowed_stores", "sites", "tested_mcp_version")))
             self.assertFalse(any(field.get("sensitive") for field in cfg.values()), "the configuration never holds a token")

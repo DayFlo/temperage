@@ -9,8 +9,8 @@ Storage: a **record**, never guidance (`stores.md` section 1). It is written
 to the working folder first, as
 `sites/<shortName>/runs/<yyyy-mm-dd>-<slug>.manifest.json` beside its
 `.brief.json` (`references/runs/` in a legacy git checkout), then to the source
-of truth through its adapter (a Confluence or Notion page titled with that
-path, or the same file), and on claude.ai it is offered to the user as a
+of truth through its adapter (a Notion page titled with that path, or the
+same file), and on claude.ai it is offered to the user as a
 download at the end of every phase. It is never written to a Webflow Agent
 Instruction: a version of this skill before 1.1.0 did that under
 `<prefix>/runs/`, and the maintain flow's Housekeeping moves any such record

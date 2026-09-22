@@ -71,8 +71,8 @@ Print one table, in this shape, then stop:
 | Working folder | `<path>`: writable / not set / not applicable on claude.ai | | | write-ahead layer on / downloads |
 
 Two closing lines: the store decision in one sentence ("Guidance from
-Confluence, mirrored to Webflow; records to Confluence with the working folder
-as write-ahead"), and the single most useful next step (usually the exact ask of
+Notion, mirrored to Webflow; records to Notion with the working folder as
+write-ahead"), and the single most useful next step (usually the exact ask of
 the first refused row, or "nothing refused; run onboarding" on a site with no
 pointer).
 
