@@ -46,12 +46,20 @@ organization").
 In the Claude desktop app open the **Cowork** tab, then **Customize →
 Plugins → Add from a repository**, and paste
 `https://github.com/DayFlo/webflow-template-skill`. Install **temperage**.
-The plugin's `.mcp.json` registers the Webflow MCP server; Cowork prompts for
-the Webflow OAuth flow on first use, and `/mcp` lists it next to your
-claude.ai connectors. Invoke the skill by name. Hooks and sub-agents are
-Cowork-only features; this plugin ships neither, so nothing is greyed out
-elsewhere. Records are written to a working folder you name, then to the
-organization store through your Notion connector.
+Invoke the skill by its namespaced name, `temperage:webflow-template`; it is
+not listed among the available skills because it never auto-fires.
+
+What a Cowork run on 2026-09-22 showed:
+
+- Webflow access comes from the **claude.ai Webflow connector**. The plugin's
+  `.mcp.json` server did not load, so connect Webflow under claude.ai
+  Connectors first.
+- The session runs in a **cloud container** with Python 3.11, so the helper
+  scripts run. `~` there is `/root`, not your Mac. Records written to a
+  container folder last only for the session; connect a folder from your Mac
+  if you want a working folder that persists, or use Notion as the source of
+  truth.
+- Hooks and sub-agents are Cowork-only features; this plugin ships neither.
 
 ### Codex
 
