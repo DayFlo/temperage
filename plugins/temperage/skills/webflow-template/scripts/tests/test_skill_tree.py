@@ -338,6 +338,12 @@ class SkillTreeTests(unittest.TestCase):
         skill_md = read("SKILL.md")
         self.assertIn("| Cowork |", skill_md)
         self.assertIn("Write records locally first", flat(skill_md))
+        # substitution happens in SKILL.md only, so every userConfig key must appear there
+        for key in ("source_of_truth", "notion_parent_page_id", "working_folder", "instruction_prefix",
+                    "allowed_stores", "sites", "tested_mcp_version"):
+            self.assertIn("${user_config.%s}" % key, skill_md, key)
+        for name in os.listdir(os.path.join(SKILL_DIR, "flows")):
+            self.assertNotIn("${user_config.", read("flows", name), f"{name}: flows are not substituted")
 
         plugin_json = os.path.join(os.path.dirname(os.path.dirname(SKILL_DIR)), ".claude-plugin", "plugin.json")
         if os.path.isfile(plugin_json):          # absent when the skill folder is distributed alone

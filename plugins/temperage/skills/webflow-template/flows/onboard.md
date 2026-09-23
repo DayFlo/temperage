@@ -68,8 +68,8 @@ section 6:
    opens with a `webflow-template` pointer block, the store is decided: adopt
    it, say so, and do not ask. This is a re-onboard, or a second site in a
    workspace that is already configured.
-2. **Administrator configuration.** `${user_config.source_of_truth}` (Claude
-   Code, Cowork) or `references/org.json` in the skill copy with a non-empty
+2. **Administrator configuration.** The Administrator configuration table
+   in `SKILL.md` (Claude Code, Cowork) or `references/org.json` in the skill copy with a non-empty
    `sourceOfTruth`. Use it. If it names a store the pointer does not, show
    both and ask which is right: the pointer is the site's answer and the
    configuration is the organization's constraint (`allowedStores`).

@@ -46,7 +46,8 @@ Throughout, `<prefix>` is the instruction prefix from `webflow-conventions.md`,
    did): `data_agent_instructions_tool > search_instructions` once, no filter;
    a `rules/<prefix>.md` hit whose first fenced block is a `webflow-template`
    pointer names the store; else the administrator configuration
-   (`${user_config.source_of_truth}` or `references/org.json`); else the
+   (the Administrator configuration table in `SKILL.md`, then
+   `references/org.json`); else the
    working folder's cached `org.json`; else ask once. Then read, in this order
    and stopping at the first that answers:
    - the **source of truth** through its adapter: `catalog/index.md`,
@@ -132,6 +133,10 @@ Throughout, `<prefix>` is the instruction prefix from `webflow-conventions.md`,
    - Claude Code or Codex: run `open "<url>"` (`xdg-open` on Linux), wait about
      40 seconds, and re-probe `get_current_page`; up to three attempts before
      recording the Designer as unreachable.
+   - Cowork: `open` runs in the cloud container and cannot reach the user's
+     Mac. Use a Mac-side browser tool if the session has one (for example
+     Control Chrome's `open_url`; one re-probe after about 40 seconds
+     succeeded on 2026-09-22), otherwise do what Claude.ai does.
    - Claude.ai: show the url as a markdown link, ask the user to click it and
      leave the tab in front, then re-probe once they confirm.
    Record the outcome (reachable or not, and after how many attempts) in the

@@ -248,7 +248,9 @@ else in this repository. When `get_current_page` fails, its error response
 contains the sentence "Launch the app using following link `<url>`"; take that
 url from the response. On Claude Code or Codex run `open "<url>"` (`xdg-open`
 on Linux), wait about 40 seconds, and re-probe; up to three attempts before
-recording the Designer as unreachable for the run. On Claude.ai show the url as
+recording the Designer as unreachable for the run. On Cowork, whose `open` runs
+in a cloud container, use a Mac-side browser tool if the session has one. On
+Claude.ai show the url as
 a markdown link and ask the user to click it and keep the tab in front. Treat
 the url as a credential: use it within the run, never write it to a file, a
 manifest, a run record, or a commit (rule 15).
