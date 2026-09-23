@@ -3,17 +3,18 @@
 Maintainer flow. It is how the template library grows and how shared things
 change on purpose. Six paths; run the one the user asked for.
 
-It is written for Claude Code with repo access, where every path ends in a pull
-request. On a site onboarded **without a repository** (`flows/onboard.md`
-step 0, "Store: Webflow") there is no PR to open and no repo file to edit: read
-"Maintaining without a repository" at the end of this file first, then run the
-path you need with the substitutions it lists.
+It is written for a working folder that is a git checkout, where every path
+ends in a pull request. When the source of truth is a **page store**
+(Notion; `flows/onboard.md` step 0, `../references/stores.md`)
+or a plain folder, there is no PR to open: read "Maintaining in a page store"
+at the end of this file first, then run the path you need with the
+substitutions it lists.
 
 References: `../references/catalog/README.md` (entry format, status, component
 metadata convention), `../references/catalog/candidates/README.md` (promotion),
 `../references/rules.md`, `../references/site-inventory.md` (the local capture
 from onboarding), `../references/webflow-conventions.md`,
-`../references/unsupported.md` (the Agent Instructions scope row). Scripts:
+`../references/unsupported.md` (the access and entitlement table). Scripts:
 `../scripts/catalog_lint.py`. Follow-up flow: `sync.md` after any catalog
 change. `<prefix>` throughout is the instruction prefix from the conventions
 file (default `page-templates`).
@@ -26,10 +27,12 @@ components and does not carry their ids (`catalog/README.md`, "Components are
 named"). Add `includeInstanceCount` only on the paths below that need the blast
 radius; `includeProps` and `includeVariants` stay off unless the path says
 otherwise (rule 10). Pace element reads (`get_all_elements`, `query_elements`)
-as `webflow-conventions.md` records for this site. If the Agent Instructions
-store returns **403** on `search_instructions`, every step below that reads or
-writes an instruction is replaced by its local counterpart (files under
-`../references/`); say so once and continue.
+as `webflow-conventions.md` records for this site. Every catalog read and
+write below goes to the **source of truth** through its adapter
+(`../references/stores.md`); the Webflow mirror is updated afterwards by
+`sync.md`. If the mirror returns **403** on `search_instructions`, the sync
+step is skipped with the access-table classification and its exact ask
+(`../references/unsupported.md`); say so once and continue.
 
 ## Confirm a proposed family
 
@@ -100,11 +103,11 @@ convention in Webflow").
 ## Promote a candidate
 
 A candidate is a component, variant, or variable created by a build run and
-recorded in `<prefix>/candidates/<slug>.md` (pulled into
-`../references/catalog/candidates/` by `sync.md`). When the run could not write
-to the instruction store (403), the candidate record arrives as the local file
-the run handed to the maintainer with its report; copy it into
-`../references/catalog/candidates/` first.
+recorded in the source of truth as `candidates/<slug>.md`
+(`../references/catalog/candidates/` in a legacy git checkout). When the run
+could not reach the source of truth, the candidate record arrives as the
+download the run handed to the maintainer with its report; file it into the
+source of truth first.
 
 1. Review it: in the Designer, or by `element_snapshot_tool` on an instance when
    the Designer is open. Check responsive behavior at every breakpoint the
@@ -196,8 +199,8 @@ From an existing page or from a run's outline (the "new family" path in
 ## Refresh inventory
 
 1. Re-run the read-only inventory from `onboard.md` step 3, including the
-   measurements: component-name uniqueness, branching, breakpoints, token
-   scopes, and the rate-limit probes. A site that has grown can cross the
+   measurements: component-name uniqueness, branching, breakpoints, access
+   observed, and the rate-limit probes. A site that has grown can cross the
    request-budget threshold it was previously under; that changes the pacing
    rule and possibly the capability table, so re-measure rather than assume the
    old answers hold.
@@ -221,67 +224,76 @@ From an existing page or from a run's outline (the "new family" path in
 
 ## Housekeeping
 
-1. `search_instructions` under `<prefix>/runs/` and `<prefix>/candidates/`. On
-   **403**, there is nothing remote to prune: the run records and candidate
-   files exist only as the local files the runs produced. Skip steps 2 and 4 and
-   go to step 3 with those files.
-2. Prune runs older than 90 days and candidates already promoted or rejected
-   (`delete_instruction`), listing each path and asking once for the batch. Run
-   records with `status: open` are never pruned without asking about the run
-   itself (`resume.md`).
-3. Archive manifests worth keeping (every run that built a page, every pruned
-   run) into `../references/runs/` as `<yyyy-mm-dd>-<slug>.manifest.json` with
-   the brief beside it as `<yyyy-mm-dd>-<slug>.brief.json`. The folder's README
-   says what lands there. Candidate records already promoted are removed from
-   `../references/catalog/candidates/` at the same time (the family entry now
+1. `list` the source of truth's `runs/` and `candidates/` through its adapter
+   (`../references/stores.md`), and the working folder's when it is not the
+   source of truth.
+2. Prune runs older than 90 days and candidates already promoted or rejected,
+   listing each path and asking once for the batch. Run records with
+   `status: open` are never pruned without asking about the run itself
+   (`resume.md`). On a page store, pruning is deleting the page; hand the body
+   over as a download first, because a deleted page on a plan with short
+   history retention is unrecoverable.
+3. Keep the manifests worth keeping (every run that built a page) where they
+   are: `runs/<yyyy-mm-dd>-<slug>.manifest.json` with the brief beside it. The
+   folder's README says what lands there. Candidate records already promoted
+   are removed from `candidates/` at the same time (the family entry now
    covers them).
-4. Update `sync-state.json` so pruned paths disappear from `paths`; leave it
-   untouched when the store returned 403.
-5. Open the PR with the archived files and the state change.
+4. **Legacy records in Webflow.** `search_instructions` under `<prefix>/runs/`
+   and `<prefix>/candidates/`, once. Anything found was written by a version
+   of this skill before 1.1.0: read each, write it into the source of truth
+   (`runs/<date>-<slug>.md`, `candidates/<slug>.md`), show the list, and on
+   the user's yes `delete_instruction` each path. On **403** there is nothing
+   to move; say so and continue. This step disappears once a site has no such
+   paths.
+5. Update `sync-state.json` so pruned or moved mirror paths disappear from
+   `paths`; leave it untouched when the mirror returned 403.
+6. In a git working folder, open the PR with the state change; on a page
+   store, the updated pages are the record.
 
-## Maintaining without a repository
+## Maintaining in a page store
 
-On a site whose catalog lives in Webflow Agent Instructions and nowhere else,
-every path above still applies; only the mechanics change.
+When the source of truth is Notion or a plain folder, every path above still
+applies; only the mechanics change. The review is the page's own version
+history and comments (Notion page history), plus a confirmation before each write.
 
 **Substitutions.** Wherever a path says:
 
 | It says | Do this instead |
 | --- | --- |
-| read `../references/catalog/<family>.md` | `read_instruction` on `<prefix>/catalog/<family>.md` (`resolve_references: false`) |
-| edit the entry and lint it | edit the body in the conversation; run `catalog_lint.py` if code execution is available, otherwise walk the checklist in `catalog/README.md` by hand and say the linter did not run |
-| open the PR | show the whole new body, ask for an explicit yes, then `update_instruction` on that one path |
-| after merge, run `sync.md` | nothing: the write above *is* the sync. Update the index at `<prefix>/SKILL.md` in the same way, and the sync-state rows at the end of `<prefix>/conventions.md` |
-| `../references/site-inventory.md` (Refresh inventory) | re-run `onboard.md` step 3 in the conversation and compare against what the conventions file records; there is no cached capture to diff against |
-| archive to `../references/runs/` (Housekeeping) | hand the run record back to the user as a download before deleting it; that download is the archive |
+| read `../references/catalog/<family>.md` | `read` `catalog/<family>.md` through the adapter (`../references/stores.md` section 3): the Notion attachment on the page titled with that path |
+| edit the entry and lint it | edit the body in the conversation; run `catalog_lint.py` on a temporary file if code execution is available, otherwise walk the checklist in `catalog/README.md` by hand and say the linter did not run |
+| open the PR | show the whole new body, ask for an explicit yes, then `write` it to that one path; the page store keeps the previous version, and that version is the diff a second reader can open |
+| after merge, run `sync.md` | run `sync.md` push now: it rewrites the mirror entry (`update_instruction`, `isDraft: false` once promoted) and the index at `<prefix>/SKILL.md`, and records the hashes in `sync-state.json` in the source of truth |
+| `../references/site-inventory.md` (Refresh inventory) | the working folder's copy when there is one; otherwise re-run `onboard.md` step 3 in the conversation and compare against what the conventions file records |
+| archive to `../references/runs/` (Housekeeping) | the run record already lives in the source of truth's `runs/`; before deleting a page, hand the body back to the user as a download |
 
 **Promotion, in conversation.** Confirming a proposed family or promoting a
 candidate is the same walk of the same decisions. What changes is the ending:
 
-1. Read the entry from the store and show the user what will change, in full.
-   A diff nobody reads is not a review; a body the user reads is.
+1. Read the entry from the source of truth and show the user what will change,
+   in full. A diff nobody reads is not a review; a body the user reads is.
 2. Take the decisions one turn at a time, at most three questions per turn, and
    write each answer into the entry's `## Decisions` section with who took it
-   and when. With no git log, that section is the only record of why.
-3. Set `status: promoted`, `version: 1.0.0`, add the changelog line, and flip
-   the instruction from draft to non-draft (`update_instruction` with
-   `isDraft: false`) in the same write. A promoted entry is not a draft; a
-   proposed one is.
-4. Update `<prefix>/SKILL.md`: the family moves from the proposed table to the
-   promoted one.
-5. Hand back a fresh download bundle (`onboard.md` step 9). It is the only
-   history of what the entry said before today, so say that when handing it
-   over.
+   and when. With no git log, that section and the page history are the record
+   of why.
+3. Set `status: promoted`, `version: 1.0.0`, add the changelog line, and
+   `write` the entry. Then `sync.md` push flips the mirror copy from draft to
+   non-draft (`update_instruction` with `isDraft: false`). A promoted entry is
+   not a draft; a proposed one is.
+4. The push regenerates `<prefix>/SKILL.md` and `catalog/index.md`: the family
+   moves from the proposed table to the promoted one.
+5. Hand back a fresh download bundle (`onboard.md` step 9) so the portable
+   copy matches the store.
 
 **Pruning, in conversation.** Same as Housekeeping above, with one difference:
-before `delete_instruction` on anything, hand the user the body as a download
-and get an explicit yes for that path. A deleted instruction on a site with no
-repository is unrecoverable.
+before deleting a page or a mirror path (`delete_instruction`), hand the user
+the body as a download and get an explicit yes for that path. A deleted page
+on a plan with short history retention is unrecoverable.
 
 **What is given up, and say it every time.** No pull request means no second
-reader, no diff, no revert, and no history beyond the entry's own `## Decisions`
-and changelog sections. The compensations are the ones onboarding named: an
-explicit confirmation per write, proposed families kept as drafts, and the
-download bundle as the backup. If the team later gets a repository, adopt it by
-pulling the store into it (`sync.md`, "Sites onboarded without a repository")
-rather than starting a new catalog.
+reader before the write lands, and no revert beyond the page history. The
+compensations are the ones onboarding named: an explicit confirmation per
+write, proposed families kept as drafts in the mirror, the page's version
+history as the diff, and the download bundle as the portable copy. If the team
+later adopts a git working folder, move the pages into it with the same layout
+(`stores.md` section 2) rather than starting a new catalog.

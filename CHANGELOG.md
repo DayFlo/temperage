@@ -8,6 +8,39 @@ the version `SKILL.md` mirrors.
 
 The format follows Keep a Changelog; versions follow semver.
 
+## [1.1.0] - 2026-09-16
+
+### Changed
+
+- The `webflow-template` skill's storage model: guidance is mirrored into
+  Webflow Agent Instructions, records never are, and the source of truth is
+  Notion, a working folder, or downloads. Details in the skill
+  changelog.
+- `plugin.json` declares `userConfig` (source of truth, location, instruction
+  prefix, allowed stores, sites, tested MCP version), all non-sensitive, so an
+  administrator can preset the store in managed settings under
+  `pluginConfigs`.
+- README: Cowork install, "Set up for an organization (admin, once)", the
+  store table, Troubleshooting.
+
+### Added
+
+- `checks/repo_check.py`: `references/org.json` ships empty; `stores.md` and
+  `flows/doctor.md` exist and `SKILL.md` names them; `userConfig` mirrors
+  `org.json` with no sensitive field.
+
+## [1.0.1] - 2026-09-16
+
+### Fixed
+
+- The skill's diagnosis of a 403 on Agent Instructions: it is a Webflow
+  site-role gate, not a missing OAuth scope. Details in the skill changelog.
+- README: Requirements explains which built-in site roles can read and write
+  Agent Instructions; new "Asking your Webflow admin for access" template.
+- `checks/repo_check.py`: new check that `references/unsupported.md` carries
+  the access and entitlement table and that the OAuth scope names appear
+  nowhere else in the repository.
+
 ## [1.0.0] - Unreleased
 
 First public release.

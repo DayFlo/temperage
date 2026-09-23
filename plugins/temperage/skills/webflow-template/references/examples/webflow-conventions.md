@@ -15,8 +15,12 @@ Measured by a read-only onboarding pass on 2026-01-04 and confirmed on
 
 | Setting | Value | Notes |
 | --- | --- | --- |
-| Instruction prefix | `page-templates` | Default kept; nothing else on the site owns it. Paths: `rules/page-templates.md`, `page-templates/SKILL.md`, `page-templates/conventions.md`, `page-templates/catalog/<family>.md`, `page-templates/candidates/<slug>.md`, `page-templates/runs/<date>-<slug>.md`. |
-| Store | repository | The maintainer has repo write access, so git is the reviewed source and `flows/sync.md` pushes to Webflow. |
+| Instruction prefix | `page-templates` | Default kept; nothing else on the site owns it. Mirror paths: `rules/page-templates.md` (pointer block first), `page-templates/SKILL.md`, `page-templates/conventions.md`, `page-templates/catalog/<family>.md`. |
+| Toolkit-owned paths | the four above and nothing else; guidance only | No record is written to Agent Instructions. |
+| Source of truth | working-folder | The maintainer's git checkout of the skill, legacy layout under `references/`; a pull request reviews every change and `flows/sync.md` pushes to the mirror. |
+| Store location | `<the maintainer's checkout>` | An absolute path on the maintainer's machine; not recorded here because the file is shared. |
+| Webflow mirror | writable on 2026-01-04 | Connector user's site role is Site manager; every push returned 200. |
+| Tested MCP version | `1.0` on 2026-01-04 | The value `webflow_guide_tool` returned during onboarding (fictional). |
 
 ## Sites
 
@@ -160,15 +164,24 @@ is not recorded here (rule 15).
 | Question | Answer | Measured |
 | --- | --- | --- |
 | `search_instructions` result | 200, no hits | 2026-01-04 |
+| Access-table row the probe matched (`unsupported.md`) | none (200) | 2026-01-04 |
+| Connector user's Webflow site role (asked, not measured) | Site manager | 2026-01-04 |
 | Paths another team already owns | none | 2026-01-04 |
 | Toolkit paths already present | none | 2026-01-04 |
 | Exposure check (`flows/onboard.md` step 10) | marker not found in public output after a publish on 2026-01-06 | 2026-01-06 |
 
-## Token scopes observed
+## Access observed
 
 Pages read and write, elements, components, props, styles, variables, assets,
 Designer tools, Agent Instructions read and write, page schema read and write:
-all allowed for the connector user on 2026-01-05.
+all allowed for the connector user (site role Site manager) on 2026-01-05. No
+call was refused, so no access-table row applied.
+
+| Call | Result | Error `code` and message (verbatim) | Access-table row | Measured |
+| --- | --- | --- | --- | --- |
+| `data_agent_instructions_tool > search_instructions` | 200 | none | none | 2026-01-04 |
+| `data_pages_tool > bulk_update_pages_schema_markup` | 200 | none | none | 2026-01-05 |
+| `data_pages_tool > list_branches` | 403 | `not_enterprise_plan_site` | site plan | 2026-01-04 |
 
 ## Rate limits and response sizes
 

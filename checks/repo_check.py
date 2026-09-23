@@ -9,7 +9,13 @@ Two halves:
 2. The public-exposure guarantee. The "What this can and cannot make public"
    section exists in README.md and SKILL.md, the rulebook still forbids
    publish_site, and the uploaded-asset warning is still in the rulebook and
-   the build flow, so none of it can be quietly deleted later.
+   the build flow, so none of it can be quietly deleted later. The access
+   diagnosis: the access and entitlement table exists and the agent_instructions
+   OAuth scope names appear nowhere else (a 403 on instructions is a site-role
+   gate, and the wrong remedy was once copied into nine files). The store
+   configuration: references/org.json ships empty, the store specification
+   and the doctor flow exist, and plugin.json declares the same configuration
+   as non-sensitive userConfig.
 3. Disclosure. Nothing in the tree may carry a Designer Bridge App launch link
    (it embeds a per-account app token; references/rules.md rule 15), any other
    long secret-shaped token, a machine-specific path, a branch staging domain,
@@ -33,7 +39,7 @@ import subprocess
 import sys
 
 EXPECTED_URL = "https://mcp.webflow.com/mcp"
-EXPECTED_VERSION = "1.0.0"
+EXPECTED_VERSION = "1.1.0"
 EXPECTED_SKILL = "webflow-template"
 EXPECTED_PLUGIN = "temperage"
 EXPECTED_MARKET = "webflow-template-skill"
@@ -485,6 +491,110 @@ def check_public_exposure(paths, report):
         "an upload is public before any publish and the skill must keep saying so")
 
 
+ACCESS_HEADING = "Access and entitlement table"
+# The 403 on search_instructions is a Webflow site-role gate. The skill once
+# blamed two OAuth scopes in nine files and a test asserted it. The scope names
+# may now appear in exactly one place: the access table's row that says what a
+# real scope error (code missing_scopes) looks like.
+SCOPE_PHRASE = re.compile(r"agent_instructions:(?:read|write)")
+SCOPE_ROW_MARK = "missing_scopes"
+
+
+def check_access_diagnosis(paths, report):
+    """The access and entitlement table exists in references/unsupported.md and
+    is the only place that names the agent_instructions OAuth scopes."""
+    unsupported, err = read_text(paths["unsupported"])
+    if err:
+        return report.bad(f"references/unsupported.md {err}")
+    report.verdict(
+        f"## {ACCESS_HEADING}" in unsupported,
+        f'references/unsupported.md carries the "{ACCESS_HEADING}" section',
+        f'references/unsupported.md has no "{ACCESS_HEADING}" section; every flow points there for a refused call')
+
+    offenders = []
+    for path in tracked_files(paths["root"]):
+        rel = os.path.relpath(path, paths["root"])
+        if rel in SELF:
+            continue
+        text, err = read_text(path)
+        if err:
+            continue
+        for n, line in enumerate(text.splitlines(), 1):
+            if SCOPE_PHRASE.search(line) and SCOPE_ROW_MARK not in line:
+                offenders.append(f"{rel}:{n}")
+    report.verdict(
+        not offenders,
+        "the agent_instructions OAuth scope names appear only in the access table's missing_scopes row",
+        "the 403 on instructions is a site-role gate, not a scope; scope names found outside the access table: "
+        + " ".join(offenders[:8]))
+
+
+ORG_KEYS = ("schema", "sourceOfTruth", "location", "instructionPrefix", "allowedStores",
+            "sites", "testedMcpVersion", "configuredBy", "configuredOn")
+ORG_LOCATION_KEYS = ("notionParentPageId", "workingFolder")
+USER_CONFIG_KEYS = ("source_of_truth",
+                    "notion_parent_page_id", "working_folder", "instruction_prefix",
+                    "allowed_stores", "sites", "tested_mcp_version")
+STORE_FILES = ("references/stores.md", "references/org.json", "flows/doctor.md")
+
+
+def check_store_config(paths, report):
+    """The storage model ships with no organization's configuration in it.
+
+    references/org.json parses, has the documented keys, and every value is
+    empty except the schema number and the default instruction prefix; the
+    store specification and the doctor flow exist and SKILL.md names them;
+    plugin.json declares the same configuration as userConfig, with no field
+    marked sensitive (a token never belongs in the configuration).
+    """
+    org, err = read_json(paths["org_json"])
+    if err:
+        report.bad(f"references/org.json {err}")
+    else:
+        keys_ok = tuple(org) == ORG_KEYS and isinstance(org.get("location"), dict) \
+            and tuple(org["location"]) == ORG_LOCATION_KEYS
+        report.verdict(
+            keys_ok,
+            "references/org.json carries exactly the documented keys, in order",
+            f"references/org.json keys are {list(org)} / location {list(org.get('location') or {})}; "
+            f"expected {list(ORG_KEYS)} / {list(ORG_LOCATION_KEYS)}")
+        filled = [k for k, v in org.items()
+                  if k not in ("schema", "instructionPrefix", "location") and v not in ("", [])]
+        filled += [f"location.{k}" for k, v in (org.get("location") or {}).items() if v != ""]
+        report.verdict(
+            not filled and org.get("schema") == 1 and org.get("instructionPrefix") == "page-templates",
+            "references/org.json ships empty (schema 1, default prefix, every other value blank)",
+            f"references/org.json carries an organization's configuration: {', '.join(filled) or 'schema or prefix changed'}; "
+            "the public plugin ships it empty")
+
+    skill_md, err = read_text(paths["skill_md"])
+    missing = [rel for rel in STORE_FILES if not os.path.isfile(os.path.join(paths["skill"], rel))]
+    unnamed = [] if err else [rel for rel in STORE_FILES if f"`{rel}`" not in skill_md]
+    report.verdict(
+        not missing and not unnamed,
+        "references/stores.md, references/org.json, and flows/doctor.md exist and SKILL.md names them",
+        f"store files missing: {missing}; not named in SKILL.md: {unnamed}")
+
+    plugin, err = read_json(paths["plugin_json"])
+    if err:
+        return  # reported by check_plugin_json
+    cfg = plugin.get("userConfig")
+    if not isinstance(cfg, dict):
+        return report.bad("plugin.json has no userConfig; the store configuration must be declarable at enable time")
+    problems = [k for k in USER_CONFIG_KEYS if k not in cfg]
+    problems += [f"{k} (extra)" for k in cfg if k not in USER_CONFIG_KEYS]
+    for key, field in cfg.items():
+        if not isinstance(field, dict) or not all(isinstance(field.get(f), str) and field[f].strip()
+                                                   for f in ("type", "title", "description")):
+            problems.append(f"{key} (type/title/description)")
+        elif field.get("sensitive"):
+            problems.append(f"{key} (sensitive: the configuration never holds a token)")
+    report.verdict(
+        not problems,
+        "plugin.json userConfig mirrors org.json (seven non-sensitive fields with type, title, description)",
+        f"plugin.json userConfig problems: {', '.join(problems)}")
+
+
 def check_license(paths, report):
     """LICENSE is MIT and carries a copyright line. A filled holder and the
     leftover '<copyright holder>' placeholder both pass; only a missing or
@@ -601,6 +711,8 @@ CHECKS = (
     check_codex_marketplace,
     check_catalog_ships_empty,
     check_public_exposure,
+    check_access_diagnosis,
+    check_store_config,
     check_license,
     check_tree_scan,
     check_live_validate,
@@ -629,6 +741,8 @@ def main(argv):
         "readme": os.path.join(root, "README.md"),
         "rules": os.path.join(skill, "references", "rules.md"),
         "build": os.path.join(skill, "flows", "build.md"),
+        "unsupported": os.path.join(skill, "references", "unsupported.md"),
+        "org_json": os.path.join(skill, "references", "org.json"),
     }
     report = Report()
     for check in CHECKS:

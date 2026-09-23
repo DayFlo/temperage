@@ -2,12 +2,12 @@
 
 Reusable additions made by build runs, waiting for a maintainer's review. A
 build run that creates a **New** section (a new component), a new variant, or a
-new variable writes one record per addition to Webflow Agent Instructions at
-`<prefix>/candidates/<slug>.md` with `isDraft: true` (default prefix
-`page-templates`; see `../../webflow-conventions.md`, "Toolkit settings").
-`flows/sync.md` (pull) copies those records into this folder. When the
-instruction store is not writable (HTTP 403), the run hands the record to the
-user as a local file with its report, and the maintainer copies it here by hand
+new variable writes one record per addition to the working folder and the
+source of truth as `sites/<shortName>/candidates/<slug>.md` (`../../stores.md`
+section 2; this folder in a legacy git checkout). A candidate is a **record**,
+so it is never written to Webflow Agent Instructions. When the source of truth
+is not reachable for the submitter's account, the run hands the record to the
+user as a download with its report, and the maintainer files it here by hand
 before promotion. Nothing in this folder is used by a build run; runs read
 promoted entries only.
 
@@ -63,8 +63,9 @@ components and `catalog_lint.py` rejects an id in a component column.
    metadata, adds it to the family entry, bumps the version, lints, opens a PR.
 2. After merge, `flows/sync.md` pushes the family entry and rewrites the
    component `description` to `<family>@<version> | promoted`.
-3. The candidate record is deleted from Webflow and from this folder by the
-   maintain flow's Housekeeping path (it is now covered by the family entry).
+3. The candidate record is removed from this folder (and from the source of
+   truth) by the maintain flow's Housekeeping path (it is now covered by the
+   family entry).
 
 ## Rejection
 

@@ -1,11 +1,12 @@
 # Template catalog
 
-One file per template family: `catalog/<family-slug>.md`. Written by
-`flows/onboard.md`, changed by `flows/maintain.md`, pushed to Webflow Agent
+One file per template family: `catalog/<family-slug>.md`, in the source of
+truth (`stores.md`; this folder in a legacy git checkout). Written by
+`flows/onboard.md`, changed by `flows/maintain.md`, mirrored to Webflow Agent
 Instructions (`<prefix>/catalog/<family>.md`, default prefix `page-templates`;
 see `webflow-conventions.md`, "Toolkit settings") by `flows/sync.md`, linted by
-`scripts/catalog_lint.py`. Candidates pulled from Webflow live in `candidates/`
-(see `candidates/README.md`).
+`scripts/catalog_lint.py`. Candidates written by build runs live in
+`candidates/` beside it (see `candidates/README.md`).
 
 **This directory ships empty.** The catalog is generated per site: there is no
 such thing as a portable family, because a family names components, master
@@ -180,14 +181,13 @@ it read from your site.
   use a `proposed` family, and Phase 3 of `flows/build.md` says so when it
   recommends one; the report must state that the family is unconfirmed and that
   the component names, model, and master were proposed by onboarding.
-  Placeholder `candidate:<slug>` rows are allowed only while `proposed`. In the
-  repository store a `proposed` entry stays in the repo and is never pushed; on
-  a site onboarded with no repository it lives at
-  `<prefix>/catalog/<family>.md` as a **draft** (`isDraft: true`) and is listed
-  in the index's second, unconfirmed table (`flows/sync.md`).
-- `promoted`: confirmed by a maintainer and pushed to Webflow by `flows/sync.md`
-  (or, with no repository, written straight to the store as a non-draft by
-  `flows/maintain.md`, "Maintaining without a repository").
+  Placeholder `candidate:<slug>` rows are allowed only while `proposed`. A
+  `proposed` entry lives in the source of truth and, when the mirror is
+  writable, at `<prefix>/catalog/<family>.md` as a **draft** (`isDraft: true`),
+  listed in the index's second, unconfirmed table (`flows/sync.md`).
+- `promoted`: confirmed by a maintainer (`flows/maintain.md`, in a pull
+  request when the working folder is a git checkout, otherwise "Maintaining in
+  a page store") and mirrored to Webflow as a non-draft by `flows/sync.md`.
 - `deprecated`: kept for history; never offered to a build. Set by the maintain
   flow with a patch bump and a changelog line naming the date, the maintainer,
   and where the requests route instead; the Purpose paragraph starts with the

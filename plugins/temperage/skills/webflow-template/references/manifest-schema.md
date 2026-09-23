@@ -5,12 +5,16 @@ exists so an interrupted run can be resumed or cleaned up, so the guard can
 compare before and after, and so the report can say what ships at the next
 publish. Rule 9: every write is appended **before** the next write.
 
-Storage: a Webflow Agent Instruction at `<prefix>/runs/<yyyy-mm-dd>-<slug>.md`
-(the instruction prefix is set once in `webflow-conventions.md`, "Toolkit
-settings"; the default is `page-templates`)
-with `isDraft: true`, body starting with "This is a run record, not guidance."
-followed by the brief and the manifest in fenced JSON blocks; and the same JSON
-offered to the user as a download. Script: `../scripts/manifest.py`.
+Storage: a **record**, never guidance (`stores.md` section 1). It is written
+to the working folder first, as
+`sites/<shortName>/runs/<yyyy-mm-dd>-<slug>.manifest.json` beside its
+`.brief.json` (`references/runs/` in a legacy git checkout), then to the source
+of truth through its adapter (a Notion page titled with that path, or the
+same file), and on claude.ai it is offered to the user as a
+download at the end of every phase. It is never written to a Webflow Agent
+Instruction: a version of this skill before 1.1.0 did that under
+`<prefix>/runs/`, and the maintain flow's Housekeeping moves any such record
+into the source of truth. Script: `../scripts/manifest.py`.
 
 ## Fields
 
@@ -19,7 +23,7 @@ offered to the user as a download. Script: `../scripts/manifest.py`.
 | `runId` | string | `<yyyy-mm-dd>-<slug>` by default |
 | `slug` | string | Page slug |
 | `startedAt` | string (ISO 8601) | |
-| `surface` | enum(`claude-ai`, `claude-code`, `codex`) | Where the run happened |
+| `surface` | enum(`claude-ai`, `claude-code`, `cowork`, `codex`) | Where the run happened |
 | `site` | object | `id`, `shortName` |
 | `family`, `familyVersion` | string | From the brief |
 | `templateModel` | enum | From the brief |
@@ -27,7 +31,7 @@ offered to the user as a download. Script: `../scripts/manifest.py`.
 | `briefHash` | string | `sha256:<hex>` of the approved brief (see `brief-schema.md`) |
 | `resolvedComponents` | object | Optional. The `<component name>: <component id>` map `flows/build.md` Phase 3 resolved for the chosen family. This is the **only** place a build writes a component id down: the catalog and the brief name components, and the manifest is a run record (kept with the run, archived under `references/runs/`), not guidance. Absent on a run that reached no further than template selection; a resumed run re-resolves rather than trusting it |
 | `steps` | array<object> | One per Webflow write; see below |
-| `created` | object | `pageId` (string \| null), `branchId` (string \| null), `componentIds`, `styleNames`, `variableIds`, `assetIds`, `instructionPaths` (arrays of strings) |
+| `created` | object | `pageId` (string \| null), `branchId` (string \| null), `componentIds`, `styleNames`, `variableIds`, `assetIds`, `instructionPaths` (arrays of strings; `instructionPaths` stays empty from 1.1.0, since a build no longer writes instructions, and is kept so older manifests still parse) |
 | `preSnapshotHash`, `postSnapshotHash` | string \| null | `sha256:<hex>` of the snapshot JSON used by the guard (shape below) |
 | `guardVerdict` | object \| null | The output of `diff_inventory.py` |
 | `normativeChecklist` | array<object> \| null | Optional. The Phase 6 checklist (`flows/build.md`) as filled: one entry per row; see below. `null` until Phase 6 records it |

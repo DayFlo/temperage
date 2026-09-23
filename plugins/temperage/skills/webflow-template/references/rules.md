@@ -181,10 +181,14 @@ the site through the Webflow MCP server.
     Two more, for completeness, because they are where a future contributor
     would be tempted to put data:
 
-    - **Agent Instructions**, the store this toolkit writes the rulebook,
-      catalog, candidates, and run records to, are gated behind the
-      `agent_instructions:read` scope, are delivered to authorized MCP clients
-      as site metadata, have no publish path, and never appear in page content.
+    - **Agent Instructions**, the mirror this toolkit writes guidance to (the
+      rulebook, the index, the conventions, the catalog entries) and nothing
+      else, never a brief, manifest, snapshot, candidate, or sync state
+      (`references/stores.md`), are gated by Webflow site role
+      (Site manager and Designer manage them, Marketer and Content editor read
+      them, Reviewer and custom roles cannot read them), are delivered to
+      authorized MCP clients as site metadata, have no publish path, and never
+      appear in page content.
       That is strong evidence they are not public. It is not a vendor
       statement, and none was found, so it is not a guarantee:
       `flows/onboard.md` runs a one-time verification the first time the store

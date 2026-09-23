@@ -15,9 +15,12 @@ says **UNMEASURED**, no flow may rely on the row.
 
 | Setting | Value | Notes |
 | --- | --- | --- |
-| Instruction prefix | `page-templates` | **The one place this is defined.** Every Agent Instruction path the toolkit owns is built from it: the rulebook at `rules/<prefix>.md`, the catalog index at `<prefix>/SKILL.md`, this file at `<prefix>/conventions.md`, family entries at `<prefix>/catalog/<family>.md`, candidates at `<prefix>/candidates/<slug>.md`, run records at `<prefix>/runs/<date>-<slug>.md`. Change it here if another team already owns `page-templates` on your site, then re-run `flows/sync.md`; nothing else in the skill hard-codes it. |
-| Toolkit-owned paths | the six above (`<prefix>/conventions.md` included) and nothing else | Sync never reads, writes, or deletes an instruction outside them (`flows/sync.md`). |
-| Store | `<webflow / repository / downloads only>` | Chosen at `flows/onboard.md` step 0. `webflow` means the catalog, this file, and the index live in Agent Instructions and there is no pull request in the loop; `repository` means git is the reviewed source and `flows/sync.md` pushes; `downloads only` means the user keeps the bundle and attaches it to each build. |
+| Instruction prefix | `page-templates` | **The one place this is defined.** Per site; the organization default is `instructionPrefix` in `org.json`. Every Agent Instruction path the toolkit owns is built from it: the rulebook at `rules/<prefix>.md` (with the pointer block first), the catalog index at `<prefix>/SKILL.md`, this file at `<prefix>/conventions.md`, family entries at `<prefix>/catalog/<family>.md`. Change it here if another team already owns `page-templates` on your site, then re-run `flows/sync.md`; nothing else in the skill hard-codes it. |
+| Toolkit-owned paths | the four above and nothing else; guidance only | Sync never reads, writes, or deletes an instruction outside them, and no flow writes a record (brief, manifest, snapshot, candidate, sync state) to Agent Instructions (`flows/sync.md`, `stores.md`). |
+| Source of truth | `<notion / working-folder / downloads>` | Chosen at `flows/onboard.md` step 0 by the discovery order in `stores.md` section 6 (Webflow pointer, administrator configuration, cached `org.json`, ask once). Where guidance and records live. |
+| Store location | `<Notion parent page id / absolute folder path / none>` | The adapter's location config (`stores.md` section 3). Never a credential. |
+| Webflow mirror | `<writable / read-only / unreadable>` on `<date>` | From the step 0 probe and the connector user's site role: `writable` (Designer, Site manager), `read-only` (Marketer, Content editor), `unreadable` (Reviewer, custom role; 403 `forbidden`). Guidance is mirrored only when `writable`. |
+| Tested MCP version | `<the version string webflow_guide_tool returned>` on `<date>` | Preflight compares it with the live value and says so once when they differ. |
 
 ## Sites
 
@@ -181,12 +184,12 @@ Agreed at onboarding step 5, per family. MEASURE the masters first
 | --- | --- | --- |
 | `<family>` | `<type>` | `<extra types>` |
 
-Also MEASURE whether the connector token can **write** page schema
-(`bulk_update_pages_schema_markup`). Reading and writing are separate
-permissions; a token that reads schema may still return `403
-insufficient_permissions` on the write. Record the answer: when the write is
-refused, build Phase 5 records the step as `failed` and hands the JSON-LD to
-the publisher instead.
+Also MEASURE whether the connector user's role can **write** page schema
+(`bulk_update_pages_schema_markup`). Reading and writing are separate role
+permissions; a role that reads schema may still return `403
+insufficient_permissions` on the write (`unsupported.md`, access and
+entitlement table). Record the answer: when the write is refused, build Phase 5
+records the step as `failed` and hands the JSON-LD to the publisher instead.
 
 ## Isolation default
 
@@ -264,35 +267,48 @@ MEASURE: `data_agent_instructions_tool > search_instructions`.
 
 | Question | Answer | Measured |
 | --- | --- | --- |
-| `search_instructions` result | `<200 / 403 forbidden>` | `<date>` |
+| `search_instructions` result | `<200 / 403 forbidden, with the error code and message verbatim>` | `<date>` |
+| Access-table row the probe matched (`unsupported.md`) | `<none (200) / site role / OAuth token / other>` | `<date>` |
+| Pointer block in `rules/<prefix>.md` (`stores.md` section 5) | `<adopted: sourceOfTruth at location / none / disagrees with org.json>` | `<date>` |
+| Connector user's Webflow site role (asked, not measured: the MCP server has no whoami) | `<Site manager / Designer / Marketer / Content editor / Reviewer / custom: NAME>` | `<date>` |
 | Paths another team already owns | `<list, or none>` | `<date>` |
 | Toolkit paths already present | `<list, or none>` | `<date>` |
 | Exposure check (`flows/onboard.md` step 10) | `<not run / marker not found in public output after a publish on DATE / FOUND - stop using the store>` | `<date>` |
 
 The exposure check runs **once per site**, the first time the store is used. It
 is how the claim "Agent Instructions are not public" is settled here rather
-than assumed: the evidence (scope-gated, delivered to authorized MCP clients as
+than assumed: the evidence (role-gated, delivered to authorized MCP clients as
 site metadata, no publish path, never in page content) is strong, but no vendor
 statement was found, so the answer above is a measurement, not a quote
 (`rules.md` rule 19).
 
-When the store is the catalog's only home, onboarding also appends a
-`## Sync state` section to `<prefix>/conventions.md` - one row per written path
-with its sha256 and timestamp - because there is no `sync-state.json` to hold
-them.
+`sync-state.json` (one row per mirrored path with its sha256 and timestamp) is
+a record: it lives in the source of truth beside this file, never in Webflow.
+If the site carries a `## Sync state` section at the end of
+`<prefix>/conventions.md`, a version of this skill before 1.1.0 wrote it; the
+next sync moves the rows into `sync-state.json` and drops the section.
 
-A **403** means the connector user lacks `agent_instructions:read` and
-`agent_instructions:write` on the site. That is a scope on the OAuth token, not
-a missing tool: the install is blocked until an admin grants them, build runs
-fall back to the bundled copies, and run records live as local files. A 403
-never aborts a build.
+A **403 `forbidden`** means the connector user's Webflow **site role** cannot
+read Agent Instructions (Reviewer, or an Enterprise custom role; Marketers and
+Content editors read but cannot write). It is not a missing tool and not an
+OAuth scope, so no scope grant fixes it. Classify it by the access and
+entitlement table in `unsupported.md`: the install is blocked until a workspace
+admin assigns a built-in Designer or Site manager role, build runs fall back to
+the bundled copies or an attached bundle, and run records live as local files.
+A 403 never aborts a build.
 
-## Token scopes observed
+## Access observed
 
 MEASURE per tool family and record read and write separately: pages, elements,
 components, props, styles, variables, assets, Designer tools, Agent
-Instructions, page schema markup. Name the permissions to ask a workspace admin
-for when something is refused.
+Instructions, page schema markup. For every refused call record the HTTP
+status, the error `code`, and the message verbatim, and the row of the access
+and entitlement table (`unsupported.md`) it matched; the row carries the exact
+ask, so nothing here guesses at a permission name.
+
+| Call | Result | Error `code` and message (verbatim) | Access-table row | Measured |
+| --- | --- | --- | --- | --- |
+| `<tool > action>` | `<200 / 403 / 429>` | `<code: message, or none>` | `<row, or none>` | `<date>` |
 
 ## Rate limits and response sizes
 
