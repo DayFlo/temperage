@@ -15,7 +15,7 @@ description: >-
   not activate it for general design or Webflow conversation.
 license: MIT. See LICENSE
 metadata:
-  version: "1.1.0"
+  version: "1.1.1"
 disable-model-invocation: true
 ---
 
@@ -97,6 +97,25 @@ bundle as a portable copy. The detail is in `flows/onboard.md` step 0 and
 Submitters on Claude.ai are often non-technical. Ask short questions, at most
 three per turn, and explain Webflow terms the first time you use them.
 
+## Administrator configuration
+
+Claude Code and Cowork substitute `${user_config.*}` tokens in this file only,
+never in the flows or references they read from disk (observed in Cowork on
+2026-09-22). This table is therefore the one place the plugin configuration
+reaches the skill. A cell that still reads as a literal `${user_config.…}`
+token, or is empty, is unset: fall through to `references/org.json` and the
+rest of the discovery order (`references/stores.md` section 6).
+
+| Setting | Value in this conversation |
+| --- | --- |
+| source of truth | ${user_config.source_of_truth} |
+| Notion parent page id | ${user_config.notion_parent_page_id} |
+| working folder | ${user_config.working_folder} |
+| instruction prefix | ${user_config.instruction_prefix} |
+| allowed stores | ${user_config.allowed_stores} |
+| sites | ${user_config.sites} |
+| tested MCP version | ${user_config.tested_mcp_version} |
+
 ## Preflight (every conversation)
 
 1. Call `webflow_guide_tool` once per conversation. Do not call it again.
@@ -113,7 +132,7 @@ three per turn, and explain Webflow terms the first time you use them.
    in `references/stores.md` section 6: `data_agent_instructions_tool >
    search_instructions` once with no filter (a `rules/<prefix>.md` hit whose
    first fenced block is a `webflow-template` pointer names the store), then
-   the administrator configuration (`${user_config.*}` or
+   the administrator configuration (the table above, then
    `references/org.json`), then the working folder's cached `org.json`, then
    ask once. `<prefix>` is the instruction prefix recorded once in
    `references/webflow-conventions.md`, "Toolkit settings"; the default is
@@ -161,8 +180,11 @@ three per turn, and explain Webflow terms the first time you use them.
    app using following link ..."). Take the link from that response, never from
    a file: it is a credential and it differs per operator. On Claude Code or
    Codex run `open` (macOS) or `xdg-open` (Linux) on it, wait about 40 seconds,
-   re-probe, up to three times; on Claude.ai show it as a markdown link and ask
-   the user to click it. Only then record the Designer as unreachable for the
+   re-probe, up to three times. On Cowork the session runs in a cloud
+   container whose `open` cannot reach the user's Mac: use a browser tool the
+   session has on the Mac side (for example Control Chrome's `open_url`), wait
+   about 40 seconds, and re-probe the same way; without one, do what Claude.ai
+   does. On Claude.ai show it as a markdown link and ask the user to click it. Only then record the Designer as unreachable for the
    run. Never write the link to a file, a run record, or a commit.
 
 ## Pick a flow

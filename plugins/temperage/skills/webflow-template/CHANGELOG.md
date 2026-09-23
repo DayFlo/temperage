@@ -4,6 +4,21 @@ All notable changes to the `webflow-template` skill. The format follows
 Keep a Changelog; versions follow semver and are mirrored in `SKILL.md`
 frontmatter (`metadata.version`).
 
+## [1.1.1] - 2026-09-22
+
+### Fixed
+
+- **Plugin configuration reaches the skill.** Cowork left every
+  `${user_config.*}` token in the flows and references literal: substitution
+  happens in `SKILL.md` only. `SKILL.md` gains an "Administrator
+  configuration" table with one token per `userConfig` field, and the flows,
+  `references/stores.md`, and onboarding point there instead of carrying
+  tokens of their own. A test fails if a flow carries a token.
+- **Designer launch on Cowork.** The session's `open` runs in a cloud
+  container and cannot reach the Mac. `SKILL.md`, `flows/build.md` Phase 0
+  step 5, and the conventions template now say to use a Mac-side browser tool
+  (for example Control Chrome's `open_url`), otherwise the Claude.ai link.
+
 ## [1.1.0] - 2026-09-16
 
 ### Changed

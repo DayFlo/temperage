@@ -107,7 +107,7 @@ self-contained HTML page when the user would rather read it than store it.
 `references/org.json` ships with every value empty, and `checks/repo_check.py`
 fails if the public plugin carries any organization's values. An
 administrator fills it once; nobody else sees a setup question. Every value is
-non-sensitive, so both `${user_config.*}` substitution and plain file reading
+non-sensitive, so both `${user_config.*}` substitution (in `SKILL.md`) and plain file reading
 work, and no token is ever in it: the connectors own authentication.
 
 ```json
@@ -150,20 +150,12 @@ work, and no token is ever in it: the connectors own authentication.
    `instruction_prefix`, `allowed_stores`, `sites`, `tested_mcp_version`).
    The user answers once when enabling the plugin, or an administrator presets
    them in managed settings under `pluginConfigs["temperage"].options`, which
-   users cannot override. The values reach this file as substitutions:
-
-   | Field | Value in this conversation |
-   | --- | --- |
-   | source of truth | `${user_config.source_of_truth}` |
-   | Notion parent page id | `${user_config.notion_parent_page_id}` |
-   | working folder | `${user_config.working_folder}` |
-   | instruction prefix | `${user_config.instruction_prefix}` |
-   | allowed stores, sites | `${user_config.allowed_stores}`, `${user_config.sites}` |
-   | tested MCP version | `${user_config.tested_mcp_version}` |
-
-   A cell that still reads as the literal `${user_config.…}` placeholder, or is
-   empty, means the surface did not substitute it (claude.ai, Codex) or the
-   user left it blank: treat it as unset and fall through the discovery order.
+   users cannot override. The values reach the skill **only** through the
+   Administrator configuration table in `SKILL.md`: Claude Code and Cowork
+   substitute `${user_config.*}` in `SKILL.md` and not in the flows or
+   references, which are read from disk (observed in Cowork on 2026-09-22).
+   A literal token or an empty cell there means unset; fall through the
+   discovery order.
    Cowork does not read Claude Code's managed settings; the Cowork path for a
    preset is an organization-hosted copy of the plugin with `org.json` filled.
 3. **The Webflow pointer** (section 5), which reaches every agent on the site
@@ -205,7 +197,7 @@ caches go stale.
    ├─ 200 with a pointer block .. adopt it (site truth: WHERE)
    ├─ 200, no pointer ........... not onboarded, or no pointer yet; continue
    └─ non-200 ................... classify by the access table; say so; continue; never retry
-2  Administrator configuration   ${user_config.*} or references/org.json in the skill copy
+2  Administrator configuration   the table in SKILL.md, then references/org.json in the skill copy
    └─ supplies defaults and constraints (WHAT IS ALLOWED); when it disagrees with 1, show both and ask
 3  Working-folder org.json       the cache an earlier run wrote (Cowork, Claude Code)
 4  Ask once                      which document connector is connected? working folder? downloads?
