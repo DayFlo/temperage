@@ -8,6 +8,17 @@ the version `SKILL.md` mirrors.
 
 The format follows Keep a Changelog; versions follow semver.
 
+## [Unreleased]
+
+### Changed
+
+- **Marketplace renamed to `temperage`**, matching the repository
+  (`DayFlo/temperage`) and the plugin. Both `.claude-plugin/marketplace.json`
+  and `.agents/plugins/marketplace.json` now carry `temperage`; the install
+  id is `temperage@temperage`. The READMEs, `plugin.json` homepage, and
+  `checks/repo_check.py` follow. Anyone who added the marketplace under its
+  old name removes it and adds `DayFlo/temperage` again.
+
 ## [1.1.1] - 2026-09-22
 
 ### Fixed

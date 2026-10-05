@@ -2,7 +2,7 @@
   "name": "temperage",
   "description": "Turns a design into an unpublished draft page in a Webflow site, brought to the site's existing template family: onboard, interview, approve a visual outline, build, never publish. Skill: webflow-template (/temperage:webflow-template in Claude Code and Cowork, selected by name in Claude.ai, $webflow-template in Codex). Ships .mcp.json for the Webflow MCP server. The catalog lives in your team's Notion (or a working folder) and is mirrored into Webflow Agent Instructions.",
   "version": "1.1.1",
-  "homepage": "https://github.com/DayFlo/webflow-template-skill",
+  "homepage": "https://github.com/DayFlo/temperage",
   "author": {
     "name": "temperage contributors"
   },

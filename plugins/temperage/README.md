@@ -11,8 +11,8 @@ Instructions.
 From the marketplace root:
 
 ```
-/plugin marketplace add DayFlo/webflow-template-skill
-/plugin install temperage@webflow-template-skill
+/plugin marketplace add DayFlo/temperage
+/plugin install temperage@temperage
 ```
 
 ## Usage

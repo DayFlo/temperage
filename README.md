@@ -24,8 +24,8 @@ verify by readback → report and hand off.
 ### Claude Code
 
 ```
-/plugin marketplace add DayFlo/webflow-template-skill
-/plugin install temperage@webflow-template-skill
+/plugin marketplace add DayFlo/temperage
+/plugin install temperage@temperage
 ```
 
 Invoke: `/temperage:webflow-template`. Plugin skills are
@@ -45,7 +45,7 @@ organization").
 
 In the Claude desktop app open the **Cowork** tab, then **Customize →
 Plugins → Add from a repository**, and paste
-`https://github.com/DayFlo/webflow-template-skill`. Install **temperage**.
+`https://github.com/DayFlo/temperage`. Install **temperage**.
 Invoke the skill by its namespaced name, `temperage:webflow-template`; it is
 not listed among the available skills because it never auto-fires.
 
