@@ -10,6 +10,12 @@ The format follows Keep a Changelog; versions follow semver.
 
 ## [Unreleased]
 
+### Added
+
+- **Install GIF** (`docs/install.gif`) in the README's Claude Code section,
+  with the shell form of the install (`claude plugin marketplace add`, then
+  `claude plugin install`). The output shown is from a real run.
+
 ### Changed
 
 - **Marketplace renamed to `temperage`**, matching the repository

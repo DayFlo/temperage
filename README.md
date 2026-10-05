@@ -28,6 +28,15 @@ verify by readback → report and hand off.
 /plugin install temperage@temperage
 ```
 
+Or from a shell:
+
+```
+claude plugin marketplace add DayFlo/temperage
+claude plugin install temperage@temperage
+```
+
+![Installing temperage from a shell](docs/install.gif)
+
 Invoke: `/temperage:webflow-template`. Plugin skills are
 namespaced. The unqualified form works only for a copy in
 `.claude/skills`. The skill will not auto-fire
