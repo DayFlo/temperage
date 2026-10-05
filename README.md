@@ -62,16 +62,15 @@ the namespaced name, `temperage:webflow-template`.
 
 ![Application flow: installing temperage in the Claude desktop app, then invoking it from Chat or Cowork](docs/install-app.gif)
 
-What a Cowork run on 2026-09-22 showed:
+In Cowork:
 
-- Webflow access comes from the **claude.ai Webflow connector**. The plugin's
-  `.mcp.json` server did not load, so connect Webflow under claude.ai
-  Connectors first.
+- Webflow access comes from the **claude.ai Webflow connector**, not the
+  plugin's `.mcp.json` server, which Cowork does not load. Connect Webflow
+  under claude.ai Connectors first.
 - The session runs in a **cloud container** with Python 3.11, so the helper
   scripts run. `~` there is `/root`, not your Mac. Records written to a
   container folder last only for the session; connect a folder from your Mac
-  if you want a working folder that persists, or use Notion as the source of
-  truth.
+  for a working folder that persists, or use Notion as the source of truth.
 - Hooks and sub-agents are Cowork-only features; this plugin ships neither.
 
 ### Codex
@@ -218,7 +217,7 @@ full rule is `references/rules.md` rule 19; the same table is in
 | **The draft page** | No | Created with `draft: true` set explicitly and confirmed by readback. Draft pages are excluded from publishing, so the page does not go live at the next site publish either. A human turns the flag off. |
 | **New components, styles, variables** | Not yet - **at the next site publish, yes** | Site-level, so they ship whenever anyone next publishes the site, even though the page stays a draft. Every run reports them as the ships-at-next-publish list. Branch mode keeps them off main until merge. |
 | **Uploaded assets** | **Yes, immediately** | This is the one exception. `asset_tool > upload_image_by_url` puts the file in the site's asset library, and Webflow serves library assets from a public CDN URL from the moment of upload, before any publish and whether or not the page is ever published. The build warns and asks before every upload, prefers an asset already in the library, and reports each one as an "already public" line, separate from and more urgent than ships-at-next-publish. Deleting an asset later does not un-serve a URL someone already has. |
-| **Branch staging publish** | Gated, not open | Only on explicit request in that turn, only in branch mode, only to staging, never production. Measured, not assumed: an anonymous request to a Webflow branch staging URL redirects to the Webflow login and returns HTTP 403. |
+| **Branch staging publish** | Gated, not open | Only on explicit request in that turn, only in branch mode, only to staging, never production. An anonymous request to a Webflow branch staging URL redirects to the Webflow login and returns HTTP 403. |
 | **Agent Instructions** (the guidance mirror; never a record) | Evidence says no; no vendor statement | Gated by Webflow site role (Site manager and Designer manage; Marketer and Content editor read; Reviewer and custom roles cannot read), delivered to authorized MCP clients as site metadata, no publish path, never in page content. Not a guarantee: onboarding runs a one-time check per site (write a throwaway instruction with a unique marker, have a human publish on their normal cadence, confirm the marker appears nowhere in public output, delete it). |
 | **CMS items** | Never used | Standing non-goal. The Data API models CMS items with staged and live states and publish and unpublish events: they are publish-shaped by design, so a catalog entry, brief, candidate, or run record kept in a collection would sit one publish away from the public internet. |
 

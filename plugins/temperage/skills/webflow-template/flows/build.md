@@ -98,8 +98,8 @@ so in the report, never guess. `<prefix>` is the instruction prefix from
      seconds, re-probe; up to three attempts.
    - Cowork: `open` runs in the cloud container and cannot reach the Mac. Use
      a Mac-side browser tool if the session has one (for example Control
-     Chrome's `open_url`; one re-probe after about 40 seconds worked on
-     2026-09-22), otherwise do what Claude.ai does.
+     Chrome's `open_url`, then one re-probe after about 40 seconds),
+     otherwise do what Claude.ai does.
    - Claude.ai: show the url as a markdown link, ask the user to click it and
      keep the tab in front, re-probe once they confirm.
 

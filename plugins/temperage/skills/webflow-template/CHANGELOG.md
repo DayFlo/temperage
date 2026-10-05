@@ -17,6 +17,10 @@ frontmatter (`metadata.version`).
   cross-reference still holds. The safety wording stays verbatim: the
   asset-upload warning, the link-extras question, the never list, and the
   normative checklist.
+- **Dated run notes reworded as plain statements** in `SKILL.md`,
+  `flows/build.md`, `references/rules.md`, and `references/stores.md`
+  ("observed in Cowork on 2026-09-22", "measured, not assumed"). No change
+  in behavior.
 
 ## [1.1.1] - 2026-09-22
 

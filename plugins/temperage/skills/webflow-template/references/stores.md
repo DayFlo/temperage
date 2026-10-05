@@ -77,8 +77,8 @@ named.
 **Page stores.** Notion is the only page-store adapter. The skill detects the
 Notion connector from the tools available in the conversation and, when no
 configuration already answers, confirms it as the source of record in one
-sentence and stores the answer (section 4). Confluence is not an adapter: it
-was dropped on 2026-09-22 to keep one page-store mapping to maintain and test.
+sentence and stores the answer (section 4). Confluence is not an adapter:
+leaving it out keeps one page-store mapping to maintain and test.
 Google Drive is not an adapter: its
 connector creates files and folders but cannot edit an existing file. Slack
 canvases are not an adapter: no structure, weak history. Webflow CMS is not an
@@ -153,7 +153,7 @@ work, and no token is ever in it: the connectors own authentication.
    users cannot override. The values reach the skill **only** through the
    Administrator configuration table in `SKILL.md`: Claude Code and Cowork
    substitute `${user_config.*}` in `SKILL.md` and not in the flows or
-   references, which are read from disk (observed in Cowork on 2026-09-22).
+   references, which are read from disk.
    A literal token or an empty cell there means unset; fall through the
    discovery order.
    Cowork does not read Claude Code's managed settings; the Cowork path for a
