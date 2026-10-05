@@ -15,6 +15,11 @@ The format follows Keep a Changelog; versions follow semver.
 - **Install GIF** (`docs/install.gif`) in the README's Claude Code section,
   with the shell form of the install (`claude plugin marketplace add`, then
   `claude plugin install`). The output shown is from a real run.
+- **Application-flow install GIF** (`docs/install-app.gif`) in the README's
+  Cowork section: the Claude desktop app path through Customize → Plugins,
+  the Add marketplace dialog, Discover, and picking webflow-template from the
+  `/` menu in the Chat or Cowork composer. Built from real screenshots. The
+  Cowork steps now match it.
 
 ### Changed
 

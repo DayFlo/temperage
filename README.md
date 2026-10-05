@@ -52,11 +52,15 @@ organization").
 
 ### Cowork
 
-In the Claude desktop app open the **Cowork** tab, then **Customize →
-Plugins → Add from a repository**, and paste
-`https://github.com/DayFlo/temperage`. Install **temperage**.
-Invoke the skill by its namespaced name, `temperage:webflow-template`; it is
-not listed among the available skills because it never auto-fires.
+In the Claude desktop app open **Customize → Plugins → + Add**. In the
+**Add marketplace** dialog paste `https://github.com/DayFlo/temperage` and
+**Sync**. Then under **Plugins → Discover**, add **temperage**. To invoke,
+type `/` in the Chat or Cowork composer and pick **webflow-template**, or use
+the namespaced name, `temperage:webflow-template`.
+
+**Application flow** (the Claude desktop app, not the shell install above):
+
+![Application flow: installing temperage in the Claude desktop app, then invoking it from Chat or Cowork](docs/install-app.gif)
 
 What a Cowork run on 2026-09-22 showed:
 
