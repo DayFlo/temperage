@@ -1,9 +1,9 @@
 {
-  "name": "webflow-template-skill",
+  "name": "temperage",
   "owner": {
-    "name": "webflow-template-skill contributors"
+    "name": "temperage contributors"
   },
-  "description": "A marketplace carrying one plugin, temperage, whose webflow-template skill turns a design into an unpublished Webflow draft page built from a reusable template family.",
+  "description": "The temperage marketplace: one plugin, temperage, whose webflow-template skill turns a design into an unpublished Webflow draft page built from a reusable template family.",
   "plugins": [
     {
       "name": "temperage",

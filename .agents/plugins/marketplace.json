@@ -1,7 +1,7 @@
 {
-  "name": "webflow-template-skill",
+  "name": "temperage",
   "interface": {
-    "displayName": "Webflow template skill"
+    "displayName": "Temperage"
   },
   "plugins": [
     {

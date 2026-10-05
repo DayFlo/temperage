@@ -4,6 +4,20 @@ All notable changes to the `webflow-template` skill. The format follows
 Keep a Changelog; versions follow semver and are mirrored in `SKILL.md`
 frontmatter (`metadata.version`).
 
+## [Unreleased]
+
+### Changed
+
+- **`flows/build.md` and `flows/onboard.md` tightened** (build 6,709 to
+  4,985 words, onboard 5,354 to 4,143) with no change in behavior. Repeated
+  explanations are cut, and detail that already lives in a reference is
+  pointed at instead of restated: the discovery and read orders
+  (`references/stores.md` section 6) and the interview topics
+  (`references/interview.md`). Phase and step numbers are unchanged, so every
+  cross-reference still holds. The safety wording stays verbatim: the
+  asset-upload warning, the link-extras question, the never list, and the
+  normative checklist.
+
 ## [1.1.1] - 2026-09-22
 
 ### Fixed

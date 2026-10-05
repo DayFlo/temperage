@@ -42,7 +42,7 @@ EXPECTED_URL = "https://mcp.webflow.com/mcp"
 EXPECTED_VERSION = "1.1.1"
 EXPECTED_SKILL = "webflow-template"
 EXPECTED_PLUGIN = "temperage"
-EXPECTED_MARKET = "webflow-template-skill"
+EXPECTED_MARKET = "temperage"
 
 QUOTES = ('"', "'")
 
