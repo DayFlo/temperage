@@ -91,7 +91,7 @@ bundle as a portable copy. The detail is in `flows/onboard.md` step 0 and
 | --- | --- | --- | --- | --- |
 | Claude.ai | User selects "webflow-template" by name | First-party Webflow connector (OAuth per user) | Code execution sandbox, Python only if enabled | **No repo, and none needed.** Source of truth through the Notion connector when it is connected, else downloads only (records handed over at the end of every phase); guidance mirrored into Webflow Agent Instructions under `<prefix>` when the role allows; a download bundle always |
 | Claude Code | `/temperage:webflow-template` (plugin skills are namespaced; the bare form only applies to a copy in `.claude/skills`) | Plugin `.mcp.json` (`https://mcp.webflow.com/mcp`) or the project's MCP | Local `python3` | Working folder as write-ahead, then the organization store; a git checkout as the working folder gives a pull request, the reviewed path |
-| Cowork | The Skill tool with the namespaced name `temperage:webflow-template` (the skill is not listed among available skills, because of `disable-model-invocation: true`, but explicit invocation works), or `/temperage:webflow-template` | The claude.ai Webflow connector. Observed 2026-09-22: the plugin's `.mcp.json` server did not load in Cowork; the claude.ai connector served every call | `python3` 3.11 in the Cowork cloud container (observed 2026-09-22), else the written fallback | The Cowork session runs in a **cloud container** (`~` is `/root`), not on the user's Mac: a working folder there is write-ahead for the session only and is not visible on the Mac unless the user connects a folder. So on Cowork the source of truth is Notion (the connector's file upload and attachment tools are available) or downloads, and a connected folder is the only persistent working folder. The plugin directory is writable in Cowork (a synced copy); never write there anyway. Hooks and sub-agents are Cowork-only features; this skill ships neither |
+| Cowork | The Skill tool with the namespaced name `temperage:webflow-template` (the skill is not listed among available skills, because of `disable-model-invocation: true`, but explicit invocation works), or `/temperage:webflow-template` | The claude.ai Webflow connector. The plugin's `.mcp.json` server does not load in Cowork; the claude.ai connector serves every call | `python3` 3.11 in the Cowork cloud container, else the written fallback | The Cowork session runs in a **cloud container** (`~` is `/root`), not on the user's Mac: a working folder there is write-ahead for the session only and is not visible on the Mac unless the user connects a folder. So on Cowork the source of truth is Notion (the connector's file upload and attachment tools are available) or downloads, and a connected folder is the only persistent working folder. The plugin directory is writable in Cowork (a synced copy); never write there anyway. Hooks and sub-agents are Cowork-only features; this skill ships neither |
 | Codex | `$webflow-template` | `[mcp_servers.webflow]` in `~/.codex/config.toml` | Local `python3` | Working folder; the organization store only when an MCP server for it is configured |
 
 Submitters on Claude.ai are often non-technical. Ask short questions, at most
@@ -100,11 +100,11 @@ three per turn, and explain Webflow terms the first time you use them.
 ## Administrator configuration
 
 Claude Code and Cowork substitute `${user_config.*}` tokens in this file only,
-never in the flows or references they read from disk (observed in Cowork on
-2026-09-22). This table is therefore the one place the plugin configuration
-reaches the skill. A cell that still reads as a literal `${user_config.…}`
-token, or is empty, is unset: fall through to `references/org.json` and the
-rest of the discovery order (`references/stores.md` section 6).
+never in the flows or references they read from disk. This table is therefore
+the one place the plugin configuration reaches the skill. A cell that still
+reads as a literal `${user_config.…}` token, or is empty, is unset: fall
+through to `references/org.json` and the rest of the discovery order
+(`references/stores.md` section 6).
 
 | Setting | Value in this conversation |
 | --- | --- |
@@ -123,11 +123,11 @@ rest of the discovery order (`references/stores.md` section 6).
    in `references/org.json` (`testedMcpVersion`) or the conventions file
    ("Tested MCP version"); when they differ, say so once. Webflow changes error
    codes and role rules, and the skill should notice drift before a user does.
-   The response can exceed the client's tool-result limit (85,801 characters
-   in Cowork on 2026-09-22); the client then saves it to a file, so read the
-   version and the session id from that file rather than calling the tool
-   again. If the response issues a **session id**, keep it and pass it to every
-   later Webflow call that accepts one; a call made without it may be refused.
+   The response can exceed the client's tool-result limit (it does in
+   Cowork); the client then saves it to a file, so read the version and the
+   session id from that file rather than calling the tool again. If the
+   response issues a **session id**, keep it and pass it to every later
+   Webflow call that accepts one; a call made without it may be refused.
 2. Find the source of truth and read the guidance. Run the **discovery order**
    in `references/stores.md` section 6: `data_agent_instructions_tool >
    search_instructions` once with no filter (a `rules/<prefix>.md` hit whose
@@ -218,7 +218,7 @@ writes it makes can, and it says so at the moment it makes it. The full rule is
 | **The draft page** | No | Created with `draft: true` set explicitly and confirmed by `get_page_metadata` readback. Draft pages are excluded from publishing, so it does not go live at the next site publish either. A human turns the flag off. |
 | **New components, styles, variables** | Not yet - **at the next site publish, yes** | They are site-level, so they ship whenever anyone next publishes the site, even though the page stays a draft. Every run reports them as the ships-at-next-publish list. Branch mode keeps them off main until merge. |
 | **Uploaded assets** | **Yes, immediately** | `asset_tool > upload_image_by_url` puts the file in the site's asset library, and Webflow serves library assets from a public CDN URL from the moment of upload, before any publish and whether or not the page is ever published. The build warns and asks first, prefers an asset already in the library, and reports every upload as an "already public" line. Deleting an asset later does not un-serve a URL someone already has. |
-| **Branch staging publish** | Gated, not open | Only on explicit request in that turn, only in branch mode, only to staging, never production. Measured: an anonymous request to a Webflow branch staging URL redirects to the Webflow login and returns HTTP 403. |
+| **Branch staging publish** | Gated, not open | Only on explicit request in that turn, only in branch mode, only to staging, never production. An anonymous request to a Webflow branch staging URL redirects to the Webflow login and returns HTTP 403. |
 | **Agent Instructions** (the guidance mirror; never a record) | Evidence says no; no vendor statement | Gated by Webflow site role (Site manager and Designer manage; Marketer and Content editor read; Reviewer and custom roles cannot read), delivered to authorized MCP clients as site metadata, no publish path, never in page content. Not a guarantee: `flows/onboard.md` step 10 runs a one-time check per site (throwaway instruction, human publishes on their own cadence, confirm the marker appears nowhere public, delete it). |
 | **CMS items** | Never used | Standing non-goal. CMS items have staged and live states with publish and unpublish events; they are publish-shaped by design, so the toolkit never stores a catalog, brief, candidate, or run record in a collection. |
 

@@ -35,7 +35,7 @@ the site through the Webflow MCP server.
 8. Never call `publish_site`. `publish_branch` only on explicit request, in a
    run that uses branch mode, and only to staging. Production publishing is
    done by humans in Webflow. What a staging URL does for an anonymous visitor
-   is recorded in rule 19; it is measured, not assumed.
+   is recorded in rule 19.
 9. Record every write in the run manifest before the next write. On
    interruption, resume from the manifest rather than rebuilding.
 10. Batch actions per tool call where the tool allows it. Keep reads filtered
@@ -174,9 +174,9 @@ the site through the Webflow MCP server.
       ships-at-next-publish list.
     - **Branch staging publish.** Only on explicit request in that turn, only
       in a run that uses branch mode, only to staging, never to production
-      (rule 8). Measured, not assumed: an anonymous request to a Webflow branch
-      staging URL redirects to the Webflow login and returns HTTP 403, so
-      staging is gated behind a Webflow login rather than open to the internet.
+      (rule 8). An anonymous request to a Webflow branch staging URL
+      redirects to the Webflow login and returns HTTP 403, so staging is gated
+      behind a Webflow login rather than open to the internet.
 
     Two more, for completeness, because they are where a future contributor
     would be tempted to put data:
