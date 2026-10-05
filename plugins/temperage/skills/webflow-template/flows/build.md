@@ -266,7 +266,7 @@ as the conventions say (rule 10); batch actions per call.
    variable the run may touch (the family's components with variants and
    props, the classes the catalog rows name, the variables in the
    reconciliation table), plus the full component list (`get_all_components`
-   without `includeInstanceCount`; the guard compares the whole list, so this
+   without props and without `includeInstanceCount`; the guard compares the whole list, so this
    is the one build read of every component). Shape:
    `manifest-schema.md`, "Snapshot shape"; trimmed example
    `scripts/tests/fixtures/example/pre.snapshot.json`. Serialize style reads;
